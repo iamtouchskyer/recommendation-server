@@ -18,6 +18,7 @@ const channels = require('./channels');
 const memory = require('feathers-memory');
 const _ = require('lodash');
 const mysqlWrapper = require('./mysql-wrapper');
+const mssqlWrapper = require('./mssql-wrapper');
 
 
 function getBrandList() { return getList('tbl_brand'); }
@@ -91,7 +92,7 @@ class Tables{
   }
 
   async find(params) {
-    return mysqlWrapper.getTablesBasicInfo();
+    return mysqlWrapper.getTablesBasicInfo('pindou');
   }
 
   async get(id, params) {

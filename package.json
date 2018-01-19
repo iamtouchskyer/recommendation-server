@@ -38,6 +38,8 @@
     "feathers-memory": "^2.1.0",
     "helmet": "^3.9.0",
     "lodash": "^4.17.4",
+    "md5": "^2.2.1",
+    "mssql": "^4.1.0",
     "promise-mysql": "^3.2.0",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0"
