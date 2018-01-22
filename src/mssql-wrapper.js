@@ -36,6 +36,28 @@ async function getTablesBasicInfo(tbName) {
 
 getTablesBasicInfo('dbo.events') .then((a) => console.log(a));
 
+async function getUserRecommendation(uid) {
+  try {
+    const queryString = `select * from dbo.PredictForUsers where hid = ${uid}`;
+
+    if (cacheMgr.isInCache(queryString))
+      return await cacheMgr.readFromCache(queryString);
+
+    let pool = await mssql.connect(config);
+    let userRecommendation = await pool.request()
+                            .input(uid, mssql.VarChar(33), uid)
+                            .query('select * from dbo.PredictForUsers where hid = @uid').recordsets[0];
+
+    cacheMgr.writeToCache(queryString, userRecommendation);
+    
+    return userRecommendation;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+getUserRecommendation('3').then((a) => console.log(a));
+
 
 /*
 mssql.connect(config).then(pool => {
