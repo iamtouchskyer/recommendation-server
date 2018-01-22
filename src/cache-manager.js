@@ -2,7 +2,7 @@ var fs      = require('fs');
 var md5     = require('md5');
 
 function _path(key) {
-  return './cache/' + md5(key);
+  return __dirname + '/cache/' + md5(key);
 }
 
 function WriteToCache(key, data) {

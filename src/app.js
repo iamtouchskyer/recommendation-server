@@ -19,23 +19,9 @@ const memory = require('feathers-memory');
 const _ = require('lodash');
 const mysqlWrapper = require('./mysql-wrapper');
 const mssqlWrapper = require('./mssql-wrapper');
-
-
-function getBrandList() { return getList('tbl_brand'); }
-function getCityList() { return getList('tbl_city'); }
-function getBranchList() { return getList('tbl_branch'); }
-function getBranchBrandList() { return getList('tbl_branch_brand'); }
-
-const endPoints = [
-  {url: '/city', tableKey: 'tbl_city'},
-  {url: '/branch', tableKey: 'tbl_branch'},
-  {url: '/brand', data: 'tbl_brand'},
-  {url: '/branchbrand', tableKey: 'tbl_branch_brand'},
-
-];
+const moment = require('moment');
 
 const app = express(feathers());
-
 
 // This enables CORS
 app.use(function(req, res, next) {
@@ -53,65 +39,95 @@ app.configure(express.rest());
 // Configure Socket.io real-time APIs
 app.configure(socketio());
 
+const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '广东', '广西', '贵州', '海南', '河北', '黑龙江', '河南', '湖北', '湖南', '江苏', '江西', '吉林', '辽宁省', '内蒙古', '宁夏', '青海', '山东', '上海', '陕西', '山西', '四川', '台湾', '天津', '香港', '新疆', '西藏', '云南', '浙江'];
 
-class DataTable {
-  constructor(tableKey) {
-    this.tableKey = tableKey;
-  }
-
+class UserOperationData {
   async find(params) {
-    return mysqlWrapper.getList(this.tableKey);
+    const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: 7 };
 
-    /*
-      _.chain(BranchData)
-       .map(branchItem => {
-         var item = _.pick(branchItem, ['branch_id', 'branch_name', 'city_id', 'address', 'status', 'branch_type', 'phone']);
+    const [activeClientsByApp, activeClientsChannel] = await Promise.all([
+      mssqlWrapper.getActiveClientsByApp(timeRange),
+      mssqlWrapper.getActiveClientsByChannel(timeRange),
+    ]);
 
-   //      var cityName = _.find(CityData, (cityData) => cityData.parent_id == item.city_id);
-   //      item['city_name'] = (cityName && cityName['city_name']) || '-';
-         item['city_name'] = item.address.slice(0, 2);
+    const data = [];
+    for (let i=0; i<_.size(activeClientsByApp); i++) {
+      let provincesDataList = [];
+      for (let j=0; j<_.size(activeClientsByApp[i].activeClients); j++) {
+        const clients = activeClientsByApp[i].activeClients;
+        if (clients[j].provinceid === 0) continue;
 
-         return item;
-        })
-        .value()
-  },
-  */
+        provincesDataList.push({
+          provinceId: clients[j].provinceid,
+          provinceName: provinces[clients[j].provinceid-200],
+          dimensions: {
+            application: [
+              {appId: 1000, total: clients[j]['1000']},
+              {appId: 1005, total: clients[j]['1005']},
+              {appId: 1008, total: clients[j]['1008']},
+              {appId: 1031, total: clients[j]['1031']},
+            ],
+            channel: [
+              {appId: 1000, total: clients[j]['1000']},
+              {appId: 1005, total: clients[j]['1005']},
+              {appId: 1008, total: clients[j]['1008']},
+              {appId: 1031, total: clients[j]['1031']},
+            ],
+          }
+        });
+      }
+
+      data.push({
+        date: activeClientsByApp[i].date,
+        categories: {
+          newClients: provincesDataList,
+          activeClients: provincesDataList,
+          totalWatchedTime: provincesDataList,
+          countOfWhatchedMedia: provincesDataList,
+        }
+      });
+    }
+
+    console.log(data);
+
+    return {
+      name: 'operationData',
+      data: data,
+    };
   }
 
-  async get(id, params) {
-    return this.data[parseInt(id, 10)];
-  }
-
+  async get(id, params) { }
   async create(data, params) {}
   async patch(data, params) {}
   async remove(data, params) {}
 }
 
-class Tables{
-  constructor() {
-  }
-
+class Test {
   async find(params) {
-    return mysqlWrapper.getTablesBasicInfo('pindou');
+    console.log(params);
+
+    return {
+      name: 'operationData',
+    };
   }
 
-  async get(id, params) {
-  }
-
+  async get(id, params) { }
   async create(data, params) {}
   async patch(data, params) {}
   async remove(data, params) {}
 }
 
-_.each(endPoints, (endPoint) => app.use(endPoint.url, new DataTable(endPoint.tableKey)));
-app.use('/tables', new Tables());
+const a = new UserOperationData();
+app.use('/useroperation', a);
+app.use('/api/cibn/operationdata', a);
+app.use('/test', new Test());
 
 app.set('host', 'localhost');
 app.set('port', 3030);
 
 
 // Register a nicer error handler than the default Express one
-app.use(express.errorHandler());
+app.use(express.errorHandler( logger ));
 
 // Add any new real-time connection to the `everybody` channel
 app.on('connection', connection => app.channel('everybody').join(connection));
