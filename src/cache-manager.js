@@ -2,11 +2,19 @@ var fs      = require('fs');
 var md5     = require('md5');
 
 function _path(key) {
-  return __dirname + '/cache/' + md5(key);
+  const dir = __dirname + '/cache/';
+
+  if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+  }
+
+  return dir + md5(key);
 }
 
 function WriteToCache(key, data) {
   var path = _path(key);
+
+  console.log(path);
 
   fs.writeFile(path, JSON.stringify(data), function (error) {
     if (error) {

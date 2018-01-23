@@ -41,38 +41,62 @@ app.configure(socketio());
 
 const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '广东', '广西', '贵州', '海南', '河北', '黑龙江', '河南', '湖北', '湖南', '江苏', '江西', '吉林', '辽宁省', '内蒙古', '宁夏', '青海', '山东', '上海', '陕西', '山西', '四川', '台湾', '天津', '香港', '新疆', '西藏', '云南', '浙江'];
 
+var cacheMgr    = require('./cache-manager');
+
 class UserOperationData {
   async find(params) {
-    const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: 7 };
+    const length = 7;
+    const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: length };
 
-    const [activeClientsByApp, activeClientsChannel] = await Promise.all([
+    const [activeClientsByApp, activeClientsByChannel ] = await Promise.all([
       mssqlWrapper.getActiveClientsByApp(timeRange),
       mssqlWrapper.getActiveClientsByChannel(timeRange),
+    //  mssqlWrapper.getNewClientsByApp(timeRange),
+    //  mssqlWrapper.getNewClientsByChannel(timeRange),
+    //  mssqlWrapper.getTotalWatchedTimeByApp(timeRange),
+    //  mssqlWrapper.getTotalWatchedTimeByChannel(timeRange),
+    //  mssqlWrapper.getCountOfWatchedMediaByApp(timeRange),
+    //  mssqlWrapper.getCountOfWatchedMediaByChannel(timeRange),
     ]);
 
+    let appIds = _.keys(activeClientsByApp[0].data[0]);//.splice(-2, 2);
+    let channelIds = _.keys(activeClientsByChannel[0].data[0]);//.splice(-2, 2);
+
+    console.log(appIds);
+    console.log(channelIds);
+
     const data = [];
-    for (let i=0; i<_.size(activeClientsByApp); i++) {
+    for (let i=0; i<length; i++) {
       let provincesDataList = [];
-      for (let j=0; j<_.size(activeClientsByApp[i].activeClients); j++) {
-        const clients = activeClientsByApp[i].activeClients;
-        if (clients[j].provinceid === 0) continue;
+      for (let j=0; j<_.size(activeClientsByApp[i].data); j++) {
+        const clientsByApp = activeClientsByApp[i].data;
+        const clientsByChannel = activeClientsByApp[i].data;
+        if (clientsByApp[j].provinceid === 0) continue;
+
+        let key1 = _.keys(clientsByApp[j]);
+        let value1 = _.values(clientsByApp[j]);
+        let key2 = _.keys(clientsByChannel[j]);
+        let value2 = _.values(clientsByChannel[j]);
+        key1.splice(-2, 2);
+        key2.splice(-2, 2);
+        value1.splice(-2, 2);
+        value2.splice(-2, 2);
+
+        let apps = [];
+        for (let ii=0; ii<_.size(key1); ++ii) {
+          apps.push(_.zipObject(['appId', 'total'], [key1[ii], value1[ii]]));
+        }
+        let channels = [];
+        for (let ii=0; ii<_.size(key2); ++ii) {
+          apps.push(_.zipObject(['channelId', 'total'], [key2[ii], value2[ii]]));
+        }
 
         provincesDataList.push({
-          provinceId: clients[j].provinceid,
-          provinceName: provinces[clients[j].provinceid-200],
+          provinceId: clientsByApp[j].provinceid,
+          provinceName: provinces[clientsByApp[j].provinceid-200],
           dimensions: {
-            application: [
-              {appId: 1000, total: clients[j]['1000']},
-              {appId: 1005, total: clients[j]['1005']},
-              {appId: 1008, total: clients[j]['1008']},
-              {appId: 1031, total: clients[j]['1031']},
-            ],
-            channel: [
-              {appId: 1000, total: clients[j]['1000']},
-              {appId: 1005, total: clients[j]['1005']},
-              {appId: 1008, total: clients[j]['1008']},
-              {appId: 1031, total: clients[j]['1031']},
-            ],
+            application: apps,
+            channel: channels,
           }
         });
       }
@@ -87,8 +111,6 @@ class UserOperationData {
         }
       });
     }
-
-    console.log(data);
 
     return {
       name: 'operationData',

@@ -106,7 +106,7 @@ async function getDataByDimensionsAndTimeRangeAndCategory(timeRange, dimension, 
     const curDate = moment(timeRange.startDate).add(i, 'days').format('YYYY-MM-DD');
 
     const result = await db.doSqlStoreProcedure(dimensionStoreProcedureMap[dimension], curDate);
-    results.push(_.zipObject(['date', category], [curDate, result]));
+    results.push(_.zipObject(['date', 'data'], [curDate, result]));
   }
 
   return results;
@@ -122,12 +122,12 @@ async function getActiveClientsByApp(timeRange) {
   return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'activeClients');
 }
 
-async function getTotalClientsByChannel(timeRange) {
-  return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'channelId', 'totalClients');
+async function getNewClientsByChannel(timeRange) {
+  return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'channelId', 'newClients');
 }
 
-async function getTotalClientsByApp(timeRange) {
-  return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'totalClients');
+async function getNewClientsByApp(timeRange) {
+  return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'newClients');
 }
 
 async function getTotalWatchedTimeByChannel(timeRange) {
@@ -179,8 +179,8 @@ module.exports = {
   getUserRecommendation,
   getActiveClientsByChannel,
   getActiveClientsByApp,
-  getTotalClientsByChannel,
-  getTotalClientsByApp,
+  getNewClientsByChannel,
+  getNewClientsByApp,
   getTotalWatchedTimeByChannel,
   getTotalWatchedTimeByApp,
   getCountOfWatchedMediaByChannel,
