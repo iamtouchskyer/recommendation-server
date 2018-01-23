@@ -41,8 +41,6 @@ app.configure(socketio());
 
 const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '广东', '广西', '贵州', '海南', '河北', '黑龙江', '河南', '湖北', '湖南', '江苏', '江西', '吉林', '辽宁省', '内蒙古', '宁夏', '青海', '山东', '上海', '陕西', '山西', '四川', '台湾', '天津', '香港', '新疆', '西藏', '云南', '浙江'];
 
-var cacheMgr    = require('./cache-manager');
-
 class UserOperationData {
   async find(params) {
     const length = 7;
@@ -67,8 +65,7 @@ class UserOperationData {
       let provincesDataList = [];
       for (let j=0; j<_.size(activeClientsByApp[i].data); j++) {
         const clientsByApp = activeClientsByApp[i].data;
-        const clientsByChannel = activeClientsByApp[i].data;
-        if (clientsByApp[j].provinceid === 0) continue;
+        const clientsByChannel = activeClientsByChannel[i].data;
 
         let key1 = _.keys(clientsByApp[j]);
         let value1 = _.values(clientsByApp[j]);
@@ -90,7 +87,7 @@ class UserOperationData {
 
         provincesDataList.push({
           provinceId: clientsByApp[j].provinceid,
-          provinceName: provinces[clientsByApp[j].provinceid-200],
+          provinceName: clientsByApp[j].provinceid === 0 ? '全国' : provinces[clientsByApp[j].provinceid-200],
           dimensions: {
             application: apps,
             channel: channels,
