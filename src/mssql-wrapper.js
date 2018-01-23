@@ -97,15 +97,32 @@ async function doStoredProcedure(storedProcedureName, inputDate) {
 
 async function getDataByDimensionsAndTimeRangeAndCategory(timeRange, dimension, category) {
   const dimensionStoreProcedureMap = {
-    'appId': '[dbo].[pivot_active_clients_provinceid_appid]',
-    'channelId': '[dbo].[pivot_active_clients_provinceid_chnid]',
+    'activeClients' : {
+      'appId': '[dbo].[pivot_active_clients_provinceid_appid]',
+      'channelId': '[dbo].[pivot_active_clients_provinceid_chnid]',
+    },
+
+    'newClients' : {
+      'appId': '[dbo].[pivot_new_clients_provinceid_appid]',
+      'channelId': '[dbo].[pivot_new_clients_provinceid_chnid]',
+    },
+
+    'totalWatchedTime' : {
+      'appId': '[dbo].[pivot_total_watched_time_provinceid_appid]',
+      'channelId': '[dbo].[pivot_total_watched_time_provinceid_chnid]',
+    },
+
+    'countOfWhatchedMedia' : {
+      'appId': '[dbo].[pivot_count_of_watched_media_provinceid_appid]',
+      'channelId': '[dbo].[pivot_count_of_watched_media_provinceid_chnid]',
+    },
   };
 
   let results = [];
   for (let i=0; i<timeRange.length; i++) {
     const curDate = moment(timeRange.startDate).add(i, 'days').format('YYYY-MM-DD');
 
-    const result = await db.doSqlStoreProcedure(dimensionStoreProcedureMap[dimension], curDate);
+    const result = await db.doSqlStoreProcedure(dimensionStoreProcedureMap[category][dimension], curDate);
     results.push(_.zipObject(['date', 'data'], [curDate, result]));
   }
 
@@ -115,8 +132,6 @@ async function getDataByDimensionsAndTimeRangeAndCategory(timeRange, dimension, 
 async function getActiveClientsByChannel(timeRange) {
   return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'channelId', 'activeClients');
 }
-
-//getActiveClientsByChannel({startDate:  (new Date(moment('20171231').calendar())).getTime(), length: 7}).then(results => console.log(results));
 
 async function getActiveClientsByApp(timeRange) {
   return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'activeClients');
