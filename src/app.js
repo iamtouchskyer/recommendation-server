@@ -44,27 +44,26 @@ const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '
 class UserOperationData {
   async find(params) {
     console.log(params);
-    const length = 7;
+    const length = 20;
     const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: length };
 
     const [
       activeClientsByApp, activeClientsByChannel,
       newClientsByApp, newClientsByChannel,
-      totalWatchedTimeByApp, totalWatchedTimeByChannel,
+      //totalWatchedTimeByApp, totalWatchedTimeByChannel,
       countOfWatchedMediaByApp, countOfWatchedMediaByChannel,
     ] = await Promise.all([
       mssqlWrapper.getActiveClientsByApp(timeRange),
       mssqlWrapper.getActiveClientsByChannel(timeRange),
       mssqlWrapper.getNewClientsByApp(timeRange),
       mssqlWrapper.getNewClientsByChannel(timeRange),
-      mssqlWrapper.getTotalWatchedTimeByApp(timeRange),
-      mssqlWrapper.getTotalWatchedTimeByChannel(timeRange),
+      //mssqlWrapper.getTotalWatchedTimeByApp(timeRange),
+      //mssqlWrapper.getTotalWatchedTimeByChannel(timeRange),
       mssqlWrapper.getCountOfWatchedMediaByApp(timeRange),
       mssqlWrapper.getCountOfWatchedMediaByChannel(timeRange),
     ]);
 
-    console.log(countOfWatchedMediaByApp);
-
+    console.log(timeRange);
     let appIds = _.keys(activeClientsByApp[0].data[0]); appIds.splice(-2, 2);
     let channelIds = _.keys(activeClientsByChannel[0].data[0]); channelIds.splice(-2, 2);
 
@@ -106,47 +105,13 @@ class UserOperationData {
 
     const data = [];
     for (let i=0; i<length; i++) {
-      /*
-      let provincesDataList = [];
-      for (let j=0; j<_.size(activeClientsByApp[i].data); j++) {
-        const clientsByApp = activeClientsByApp[i].data;
-        const clientsByChannel = activeClientsByChannel[i].data;
-
-        let key1 = _.keys(clientsByApp[j]);
-        let value1 = _.values(clientsByApp[j]);
-        let key2 = _.keys(clientsByChannel[j]);
-        let value2 = _.values(clientsByChannel[j]);
-        key1.splice(-2, 2);
-        key2.splice(-2, 2);
-        value1.splice(-2, 2);
-        value2.splice(-2, 2);
-
-        let apps = [];
-        for (let ii=0; ii<_.size(key1); ++ii) {
-          apps.push(_.zipObject(['appId', 'total'], [key1[ii], value1[ii]]));
-        }
-        let channels = [];
-        for (let ii=0; ii<_.size(key2); ++ii) {
-          channels.push(_.zipObject(['channelId', 'total'], [key2[ii], value2[ii]]));
-        }
-
-        provincesDataList.push({
-          provinceId: clientsByApp[j].provinceid,
-          provinceName: clientsByApp[j].provinceid === 0 ? '全国' : provinces[clientsByApp[j].provinceid-200],
-          dimensions: {
-            application: apps,
-            channel: channels,
-          }
-        });
-      }
-      */
-
+      console.log(i);
       data.push({
         date: activeClientsByApp[i].date,
         categories: {
           newClients: genData(newClientsByApp[i], newClientsByChannel[i]),
           activeClients: genData(activeClientsByApp[i], activeClientsByChannel[i]),
-          totalWatchedTime: genData(totalWatchedTimeByApp[i], totalWatchedTimeByChannel[i]),
+          totalWatchedTime: genData(countOfWatchedMediaByApp[i], countOfWatchedMediaByChannel[i]),//genData(totalWatchedTimeByApp[i], totalWatchedTimeByChannel[i]),
           countOfWhatchedMedia: genData(countOfWatchedMediaByApp[i], countOfWatchedMediaByChannel[i]),
         }
       });

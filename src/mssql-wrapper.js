@@ -161,7 +161,6 @@ async function getCountOfWatchedMediaByApp(timeRange) {
   return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'countOfWhatchedMedia');
 }
 
-
 async function getUserRecommendation(uid) {
   try {
     const queryString = `select * from dbo.PredictForUsers where hid = ${uid}`;
@@ -183,11 +182,8 @@ async function getUserRecommendation(uid) {
   }
 }
 
-//getUserRecommendation('3').then((a) => console.log(a));
-
-
 mssql.on('error', err => {
-  // ... error handler
+  console.log(err);
 });
 
 module.exports = {
