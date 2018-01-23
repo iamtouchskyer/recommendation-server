@@ -59,11 +59,8 @@ class UserOperationData {
     //  mssqlWrapper.getCountOfWatchedMediaByChannel(timeRange),
     ]);
 
-    let appIds = _.keys(activeClientsByApp[0].data[0]);//.splice(-2, 2);
-    let channelIds = _.keys(activeClientsByChannel[0].data[0]);//.splice(-2, 2);
-
-    console.log(appIds);
-    console.log(channelIds);
+    let appIds = _.keys(activeClientsByApp[0].data[0]); appIds.splice(-2, 2);
+    let channelIds = _.keys(activeClientsByChannel[0].data[0]); channelIds.splice(-2, 2);
 
     const data = [];
     for (let i=0; i<length; i++) {
@@ -88,7 +85,7 @@ class UserOperationData {
         }
         let channels = [];
         for (let ii=0; ii<_.size(key2); ++ii) {
-          apps.push(_.zipObject(['channelId', 'total'], [key2[ii], value2[ii]]));
+          channels.push(_.zipObject(['channelId', 'total'], [key2[ii], value2[ii]]));
         }
 
         provincesDataList.push({
