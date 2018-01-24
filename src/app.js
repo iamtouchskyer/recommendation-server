@@ -24,8 +24,8 @@ const moment = require('moment');
 const app = express(feathers());
 
 const graphqlHTTP = require('express-graphql');
-const root = require('./stcarec/rec-server/graphql/root');
-const schema = require('./stcarec/rec-server/graphql/schema');
+const root = require('./popular/graphql/root');
+const schema = require('./popular/graphql/schema');
 
 // This enables CORS
 app.use(function(req, res, next) {
@@ -211,7 +211,7 @@ app.listen(app.port).on('listening', () =>
 /*
   Graph QL
 */
-app.use('/graphql', graphqlHTTP({
+app.use('/popular', graphqlHTTP({
 	schema: schema,
 	rootValue: root,
 	graphiql: true

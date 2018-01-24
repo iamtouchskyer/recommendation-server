@@ -38,9 +38,9 @@ class PlayCount {
       'top': top,
     };
 
-    let rank = runSproc('prc_rankVideoByPlayCount', params);
+    let rank = runSproc('prc_rankVideoByPlayCount', params, true);
 
-    return rank.spread(response => {
+    return rank.then(response => {
       let ret = [];
       response.forEach(element => {
         let r = new VideoCountEntity(element.vid, element.videoname, element.play_count);
