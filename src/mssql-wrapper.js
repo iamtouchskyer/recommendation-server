@@ -138,9 +138,8 @@ async function getCountOfWatchedMediaByApp(timeRange) {
 }
 
 async function getUserRecommendationByHid(hid) {
-  //const queryString = `select * from dbo.PredictForUsers where hid = '${hid}'`;
-  //const result = await db.runSqlQuery(queryString);
-return {};
+  const queryString = `select * from dbo.PredictForUsers where hid = '${hid}'`;
+  const result = await db.runSqlQuery(queryString);
   console.log(result);
 
   return result;
