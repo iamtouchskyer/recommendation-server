@@ -23,6 +23,10 @@ const moment = require('moment');
 
 const app = express(feathers());
 
+const graphqlHTTP = require('express-graphql');
+const root = require('./stcarec/rec-server/graphql/root');
+const schema = require('./stcarec/rec-server/graphql/schema');
+
 // This enables CORS
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -165,6 +169,16 @@ app.publish(data => app.channel('everybody'));
 app.listen(app.port).on('listening', () =>
   console.log('Feathers server listening on http://%s:%d', app.get('host'), app.get('port'))
 );
+
+/*
+  Graph QL
+*/
+app.use('/graphql', graphqlHTTP({
+	schema: schema,
+	rootValue: root,
+	graphiql: true
+}));
+
 
 module.exports = app;
 

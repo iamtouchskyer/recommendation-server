@@ -1,0 +1,3 @@
+[submodule "src/stcarec"]
+	path = src/stcarec
+	url = git@bitbucket.org:zlike/stcarec.git
