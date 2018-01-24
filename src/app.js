@@ -153,9 +153,42 @@ class Test {
   async remove(data, params) {}
 }
 
-const a = new UserOperationData();
-app.use('/useroperation', a);
-app.use('/api/cibn/operationdata', a);
+class UserList {
+  async find(params) {
+    const list = [
+      '1E646749DA9FBD8371DC647669489A7E',
+      '92244916DE809E51A7E6775E94EB4499',
+      '6AEF8932BC40781DEB52F63BB13641A8',
+      'F96A5E9C96CDC0D31E6FC52F1E139DA1',
+      '7D4BBD17AC7908E4950BC2549A190B2C',
+    ];
+
+    return list;
+  }
+
+  async get(id, params) { 
+    const [userRecommendation, userViewHistory ] = await Promise.all([
+      mssqlWrapper.getUserRecommendationByHid(id),
+      mssqlWrapper.getViewHistoryByHid(id),
+    ]);
+
+    return {
+      name: 'users',
+      data: {
+        recommendation: userRecommendation,
+        userViewHistory: viewHistory,
+      }
+    };
+  }
+
+  async create(data, params) {}
+  async patch(data, params) {}
+  async remove(data, params) {}
+}
+
+
+app.use('/api/cibn/operationdata', new UserOperationData());
+app.use('/api/cibn/users', new UserList());
 app.use('/test', new Test());
 
 app.set('host', 'localhost');

@@ -64,30 +64,6 @@ var db = {
   },
 };
 
-async function doStoredProcedure(storedProcedureName, inputDate) {
-  try {
-
-    if (cacheMgr.isInCache(storedProcedureName.concat(inputDate))) {
-      return await cacheMgr.readFromCache(storedProcedureName);
-    }
-
-    let pool = await mssql.connect(config);
-    let countOfVid = await pool.request()
-      .input('date', mssql.VarChar(10), inputDate)
-      .execute(storedProcedureName);
-
-    countOfVid = countOfVid.recordset;
-
-    cacheMgr.writeToCache(storedProcedureName, countOfVid);
-
-    mssql.close();
-
-    return countOfVid;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 //db.runSqlQuery('select top(10) vid from dbo.events') .then((a) => console.log(a));
 //db.runSqlQuery('select top(11) vid from dbo.events') .then((a) => console.log(a));
 //db.doSqlStoreProcedure('[dbo].[pivot_active_clients_provinceid_appid]', '2018-01-01').then((a) => console.log(a));
@@ -161,25 +137,24 @@ async function getCountOfWatchedMediaByApp(timeRange) {
   return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'countOfWhatchedMedia');
 }
 
-async function getUserRecommendation(uid) {
-  try {
-    const queryString = `select * from dbo.PredictForUsers where hid = ${uid}`;
+async function getUserRecommendationByHid(hid) {
+  //const queryString = `select * from dbo.PredictForUsers where hid = '${hid}'`;
+  //const result = await db.runSqlQuery(queryString);
+return {};
+  console.log(result);
 
-    if (cacheMgr.isInCache(queryString))
-      return await cacheMgr.readFromCache(queryString);
+  return result;
+}
 
-    let pool = await mssql.connect(config);
-    let userRecommendation = await pool.request()
-      .input(uid, mssql.VarChar(33), uid)
-      .query('select * from dbo.PredictForUsers where hid = @uid').recordsets[0];
+async function getViewHistoryByHid(hid) {
+  const queryString = `select distinct vid as dvid from dbo.events where hid='${hid}'`;
 
-    cacheMgr.writeToCache(queryString, userRecommendation);
-    
-    mssql.close();
-    return userRecommendation;
-  } catch (error) {
-    console.log(error);
-  }
+  console.log(queryString);
+  const vidList = await db.runSqlQuery(queryString);
+
+  console.log(vidList);
+
+  return vidList;
 }
 
 mssql.on('error', err => {
@@ -187,7 +162,8 @@ mssql.on('error', err => {
 });
 
 module.exports = {
-  getUserRecommendation,
+  getUserRecommendationByHid,
+  getViewHistoryByHid,
   getActiveClientsByChannel,
   getActiveClientsByApp,
   getNewClientsByChannel,
