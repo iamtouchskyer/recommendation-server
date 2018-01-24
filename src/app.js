@@ -155,30 +155,39 @@ class Test {
 
 class UserList {
   async find(params) {
-    const list = [
-      '1E646749DA9FBD8371DC647669489A7E',
-      '92244916DE809E51A7E6775E94EB4499',
-      '6AEF8932BC40781DEB52F63BB13641A8',
-      'F96A5E9C96CDC0D31E6FC52F1E139DA1',
-      '7D4BBD17AC7908E4950BC2549A190B2C',
-    ];
+    const list = mssqlWrapper.getUserListWhoHasRecommendation(10);
 
     return list;
   }
 
   async get(id, params) { 
-    const [userRecommendation, userViewHistory ] = await Promise.all([
-      mssqlWrapper.getUserRecommendationByHid(id),
-      mssqlWrapper.getViewHistoryByHid(id),
-    ]);
+    const hid = id;
+    const action = params.query.action;
 
-    return {
-      name: 'users',
-      data: {
-        recommendation: userRecommendation,
-        userViewHistory: viewHistory,
-      }
-    };
+    if (action === 'recommendation') {
+      const userRecommendation = await mssqlWrapper.getUserRecommendationByHid(hid);
+  
+      return {
+        name: 'recommendation',
+        data: userRecommendation,
+      };
+    } else if (action === 'tag') {
+      const userTags = await mssqlWrapper.getTagsByHid(id);
+    
+      return {
+        name: 'tags',
+        data: userTags,
+      };
+    } else if (action === 'history') {
+      const userViewHistory = await mssqlWrapper.getViewHistoryByHid(id);
+    
+      return {
+        name: 'history',
+        data: userViewHistory,
+      };
+    } else {
+      return {};
+    }
   }
 
   async create(data, params) {}
@@ -212,9 +221,9 @@ app.listen(app.port).on('listening', () =>
   Graph QL
 */
 app.use('/popular', graphqlHTTP({
-	schema: schema,
-	rootValue: root,
-	graphiql: true
+  schema: schema,
+  rootValue: root,
+  graphiql: true
 }));
 
 

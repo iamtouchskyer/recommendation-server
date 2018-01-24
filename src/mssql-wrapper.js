@@ -137,23 +137,72 @@ async function getCountOfWatchedMediaByApp(timeRange) {
   return await getDataByDimensionsAndTimeRangeAndCategory(timeRange, 'appId', 'countOfWhatchedMedia');
 }
 
-async function getUserRecommendationByHid(hid) {
-  const queryString = `select * from dbo.PredictForUsers where hid = '${hid}'`;
+async function getUserListWhoHasRecommendation(size) {
+  const queryString = `select distinct top (${size}) hid from dbo.PredictForUsers`;
   const result = await db.runSqlQuery(queryString);
-  console.log(result);
 
-  return result;
+  return (_.map(result, _.property('hid')));
+}
+
+async function getUserRecommendationByHid(hid) {
+  const queryString = `select videolist from dbo.PredictForUsers where hid = '${hid}'`;
+  const result = await db.runSqlQuery(queryString);
+
+  const videoLists = _.map(result, (res) => {
+    return res.videolist.split(';');
+  });
+
+  const uniqueVideoLists = _.chain(videoLists)
+    .flatten()
+    .uniq()
+    .value();
+
+  const queryString2 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${uniqueVideoLists.join(',')})`;
+  const result2 = await db.runSqlQuery(queryString2);
+
+  return result2;
+}
+
+async function getTagsByHid(hid) {
+  const queryString = `select distinct vid as dvid from dbo.events where hid='${hid}'`;
+
+  const vidList = await db.runSqlQuery(queryString);
+
+  const uniqueVideoLists = _.chain(vidList)
+    .map(_.property('dvid'))
+    .filter((vid) => vid != '0')
+    .value();
+
+  const queryString2 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${uniqueVideoLists.join(',')})`;
+  const result2 = await db.runSqlQuery(queryString2);
+
+  const tags = _.chain(result2)
+    .map(res => {
+      const arr = _.filter([res.videotype, res.taginfo, res.category, res.area, res.director, res.actor].join('|').split('|'), (item) => item);
+
+      return arr;
+    })
+    .flatten()
+    .value();
+
+
+  return tags;
 }
 
 async function getViewHistoryByHid(hid) {
   const queryString = `select distinct vid as dvid from dbo.events where hid='${hid}'`;
 
-  console.log(queryString);
   const vidList = await db.runSqlQuery(queryString);
 
-  console.log(vidList);
+  const uniqueVideoLists = _.chain(vidList)
+    .map(_.property('dvid'))
+    .filter((vid) => vid != '0')
+    .value();
 
-  return vidList;
+  const queryString2 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${uniqueVideoLists.join(',')})`;
+  const result2 = await db.runSqlQuery(queryString2);
+
+  return result2;
 }
 
 mssql.on('error', err => {
@@ -161,8 +210,10 @@ mssql.on('error', err => {
 });
 
 module.exports = {
+  getUserListWhoHasRecommendation,
   getUserRecommendationByHid,
   getViewHistoryByHid,
+  getTagsByHid,
   getActiveClientsByChannel,
   getActiveClientsByApp,
   getNewClientsByChannel,
