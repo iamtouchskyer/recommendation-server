@@ -14,7 +14,7 @@ const connect = () => {
   
     dialectOptions: {
       encrypt: true,
-      requestTimeout: 120000,
+      requestTimeout: 1000 * 60 * 30,
     }
   });
 
