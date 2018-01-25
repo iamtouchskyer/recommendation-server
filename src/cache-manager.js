@@ -14,7 +14,7 @@ function _path(key) {
 function WriteToCache(key, data) {
   var path = _path(key);
 
-  console.log(path);
+  console.log('WriteToCache'.concat(path));
 
   fs.writeFile(path, JSON.stringify(data), function (error) {
     if (error) {
@@ -27,6 +27,8 @@ function WriteToCache(key, data) {
 
 function ReadFromCache(key) {
   var path = _path(key);
+
+  console.log('ReadFromCache:'.concat(path));
 
   return JSON.parse(fs.readFileSync(path));
 }

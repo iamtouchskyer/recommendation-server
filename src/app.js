@@ -52,7 +52,6 @@ const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '
 
 class UserOperationData {
   async find(params) {
-    console.log(params);
     const length = 20;
     const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: length };
 
@@ -72,7 +71,6 @@ class UserOperationData {
       mssqlWrapper.getCountOfWatchedMediaByChannel(timeRange),
     ]);
 
-    console.log(timeRange);
     let appIds = _.keys(activeClientsByApp[0].data[0]); appIds.splice(-2, 2);
     let channelIds = _.keys(activeClientsByChannel[0].data[0]); channelIds.splice(-2, 2);
 
@@ -114,7 +112,6 @@ class UserOperationData {
 
     const data = [];
     for (let i=0; i<length; i++) {
-      console.log(i);
       data.push({
         date: activeClientsByApp[i].date,
         categories: {
@@ -129,21 +126,6 @@ class UserOperationData {
     return {
       name: 'operationData',
       data: data,
-    };
-  }
-
-  async get(id, params) { }
-  async create(data, params) {}
-  async patch(data, params) {}
-  async remove(data, params) {}
-}
-
-class Test {
-  async find(params) {
-    console.log(params);
-
-    return {
-      name: 'operationData',
     };
   }
 
@@ -198,7 +180,6 @@ class UserList {
 
 app.use('/api/cibn/operationdata', new UserOperationData());
 app.use('/api/cibn/users', new UserList());
-app.use('/test', new Test());
 
 app.set('host', 'localhost');
 app.set('port', 3030);

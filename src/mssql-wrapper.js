@@ -64,10 +64,6 @@ var db = {
   },
 };
 
-//db.runSqlQuery('select top(10) vid from dbo.events') .then((a) => console.log(a));
-//db.runSqlQuery('select top(11) vid from dbo.events') .then((a) => console.log(a));
-//db.doSqlStoreProcedure('[dbo].[pivot_active_clients_provinceid_appid]', '2018-01-01').then((a) => console.log(a));
-
 // 距 1970 年 1 月 1 日之间的毫秒数。
 // {startDate: 2017-12-30, length: }
 
@@ -203,7 +199,6 @@ async function getUserRecommendationByHid(hid) {
 
   const listByTimeCategory = await
     Promise.all(_.map(videoListByTimeCategory, async (videoInSpecificTimeCategory) => {
-      console.log(videoInSpecificTimeCategory);
       const videoStr = videoInSpecificTimeCategory.join(',');
       const queryString3 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${videoStr})`;
       const list = await db.runSqlQuery(queryString3);
@@ -211,8 +206,7 @@ async function getUserRecommendationByHid(hid) {
       return list;
     }));
   
-    const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), listByTimeCategory);
-    console.log(finalListByTimeCategory);
+  const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), listByTimeCategory);
 
   return {
     fullList: fullList,
