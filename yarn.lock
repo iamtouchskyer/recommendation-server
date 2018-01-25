@@ -1744,6 +1744,13 @@ sequelize-redis-cache@^2.0.1:
     bluebird "3.4.1"
     circular-json "0.3.0"
 
+sequelize-redis-cache@zlike/sequelize-redis-cache:
+  version "2.0.1"
+  resolved "https://codeload.github.com/zlike/sequelize-redis-cache/tar.gz/81695afaa8d66eb1ab4c939728e98043ee857c3d"
+  dependencies:
+    bluebird "3.4.1"
+    circular-json "0.3.0"
+
 sequelize@^4.32.1:
   version "4.32.1"
   resolved "https://registry.yarnpkg.com/sequelize/-/sequelize-4.32.1.tgz#6761d0af31e2fa9ea61081a8b0f6a0c56dcec2a0"
