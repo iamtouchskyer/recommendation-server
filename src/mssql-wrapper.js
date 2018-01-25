@@ -84,8 +84,8 @@ async function getDataByDimensionsAndTimeRangeAndCategory(timeRange, dimension, 
     },
 
     'totalWatchedTime' : {
-      'appId': '[dbo].[pivot_total_watched_time_provinceid_appid]',
-      'channelId': '[dbo].[pivot_total_watched_time_provinceid_chnid]',
+      'appId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_appid]',
+      'channelId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_appid]',
     },
 
     'countOfWhatchedMedia' : {
@@ -145,22 +145,79 @@ async function getUserListWhoHasRecommendation(size) {
 }
 
 async function getUserRecommendationByHid(hid) {
-  const queryString = `select videolist from dbo.PredictForUsers where hid = '${hid}'`;
+  const hourMapping = {
+    0: 'lateNight',
+    1: 'lateNight',
+    2: 'lateNight',
+    3: 'earlyMorning',
+    4: 'earlyMorning',
+    5: 'earlyMorning',
+    6: 'earlyMorning',
+    7: 'morning',
+    8: 'morning',
+    9: 'morning',
+    10: 'morning',
+    11: 'morning',
+    12: 'noon',
+    13: 'noon',
+    14: 'afternoon',
+    15: 'afternoon',
+    16: 'afternoon',
+    17: 'afternoon',
+    18: 'afternoon',
+    19: 'night',
+    20: 'night',
+    21: 'night',
+    22: 'night',
+    23: 'lateNight',
+  };
+
+  const queryString = `select hour, videolist from dbo.PredictForUsers where hid = '${hid}'`;
   const result = await db.runSqlQuery(queryString);
 
-  const videoLists = _.map(result, (res) => {
+  const videoListByTimeCategory = _.reduce(result, (memo, res) => {
+    const key = hourMapping[res.hour];
+
+    if (memo[key]) {
+      memo[key] = memo[key].concat(res.videolist.split(';'));
+    } else {
+      memo[key] = res.videolist.split(';');
+    }
+
+    memo[key] = _.uniq(memo[key]);
+
+    return memo;
+  }, {});
+
+  const fullVideoLists = _.map(result, (res) => {
     return res.videolist.split(';');
   });
 
-  const uniqueVideoLists = _.chain(videoLists)
+  const uniqueVideoLists = _.chain(fullVideoLists)
     .flatten()
     .uniq()
     .value();
 
   const queryString2 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${uniqueVideoLists.join(',')})`;
-  const result2 = await db.runSqlQuery(queryString2);
+  const fullList = await db.runSqlQuery(queryString2);
 
-  return result2;
+  const listByTimeCategory = await
+    Promise.all(_.map(videoListByTimeCategory, async (videoInSpecificTimeCategory) => {
+      console.log(videoInSpecificTimeCategory);
+      const videoStr = videoInSpecificTimeCategory.join(',');
+      const queryString3 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${videoStr})`;
+      const list = await db.runSqlQuery(queryString3);
+
+      return list;
+    }));
+  
+    const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), listByTimeCategory);
+    console.log(finalListByTimeCategory);
+
+  return {
+    fullList: fullList,
+    listByTimeCategory: finalListByTimeCategory,
+  };
 }
 
 async function getTagsByHid(hid) {
