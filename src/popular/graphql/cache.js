@@ -11,7 +11,7 @@ const videoInfoLoader = new DataLoader(typeCols => {
     const { videotype, column } = typeCol;
 
     // somehow caching for this doesn't work.
-    var p = extractUniqueValues(videotype, column, false);
+    var p = extractUniqueValues(videotype, column, true);
 
     promises.push(p);
   });

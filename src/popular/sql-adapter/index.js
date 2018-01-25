@@ -14,7 +14,7 @@ const splitValues = (column, values, splitter) => {
         filtered,
         // Split each value by `splitter`
         _.split(
-          v.get(column),
+          _.has(v, 'get') ? v.get(column) : v[column],
           splitter
         )
       )
@@ -37,13 +37,10 @@ const extractUniqueValues = (videoType, column, useCache = false) => {
   };
 
   if (useCache === true) {
-    let VideoInfoCached = cacherObj.model('videoinfo');
-    return VideoInfoCached.findAll(params)
-      .then(values => values)  
-      .then((values) => {
-        console.log(values);
-        return splitValues(column, values, /[\s|]/g)
-      })
+    return cacherObj
+      .model('videoinfo').ttl(DEFAULT_TTL)
+      .findAll(params)
+      .then(values => splitValues(column, values, /[\s|]/g));
   } else {
     return VideoInfo
       .findAll(params)

@@ -48,7 +48,7 @@
     "promise-mysql": "^3.2.0",
     "redis": "^2.8.0",
     "sequelize": "^4.32.1",
-    "sequelize-redis-cache": "^2.0.1",
+    "sequelize-redis-cache": "zlike/sequelize-redis-cache",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0"
   },
