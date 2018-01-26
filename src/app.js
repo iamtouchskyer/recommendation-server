@@ -58,15 +58,15 @@ class UserOperationData {
     const [
       activeClientsByApp, activeClientsByChannel,
       newClientsByApp, newClientsByChannel,
-      //totalWatchedTimeByApp, totalWatchedTimeByChannel,
+      totalWatchedTimeByApp, totalWatchedTimeByChannel,
       countOfWatchedMediaByApp, countOfWatchedMediaByChannel,
     ] = await Promise.all([
       mssqlWrapper.getActiveClientsByApp(timeRange),
       mssqlWrapper.getActiveClientsByChannel(timeRange),
       mssqlWrapper.getNewClientsByApp(timeRange),
       mssqlWrapper.getNewClientsByChannel(timeRange),
-      //mssqlWrapper.getTotalWatchedTimeByApp(timeRange),
-      //mssqlWrapper.getTotalWatchedTimeByChannel(timeRange),
+      mssqlWrapper.getTotalWatchedTimeByApp(timeRange),
+      mssqlWrapper.getTotalWatchedTimeByChannel(timeRange),
       mssqlWrapper.getCountOfWatchedMediaByApp(timeRange),
       mssqlWrapper.getCountOfWatchedMediaByChannel(timeRange),
     ]);
@@ -117,7 +117,7 @@ class UserOperationData {
         categories: {
           newClients: genData(newClientsByApp[i], newClientsByChannel[i]),
           activeClients: genData(activeClientsByApp[i], activeClientsByChannel[i]),
-          totalWatchedTime: genData(countOfWatchedMediaByApp[i], countOfWatchedMediaByChannel[i]),//genData(totalWatchedTimeByApp[i], totalWatchedTimeByChannel[i]),
+          totalWatchedTime: genData(totalWatchedTimeByApp[i], totalWatchedTimeByChannel[i]),
           countOfWhatchedMedia: genData(countOfWatchedMediaByApp[i], countOfWatchedMediaByChannel[i]),
         }
       });

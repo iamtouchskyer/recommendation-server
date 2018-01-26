@@ -80,8 +80,10 @@ async function getDataByDimensionsAndTimeRangeAndCategory(timeRange, dimension, 
     },
 
     'totalWatchedTime' : {
-      'appId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_appid]',
-      'channelId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_appid]',
+    //  'appId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_appid]',
+    //  'channelId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_chnid]',
+      'appId': '[dbo].[pivot_count_of_all_watched_media_provinceid_appid]',
+      'channelId': '[dbo].[pivot_count_of_all_watched_media_provinceid_chnid]',
     },
 
     'countOfWhatchedMedia' : {
