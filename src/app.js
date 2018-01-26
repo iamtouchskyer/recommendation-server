@@ -53,7 +53,7 @@ const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '
 class UserOperationData {
   async find(params) {
     const length = 20;
-    const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: length };
+    const timeRange = { startDate: (new Date(moment('20171230').calendar())).getTime(), length: length };
 
     const [
       activeClientsByApp, activeClientsByChannel,
@@ -137,7 +137,7 @@ class UserOperationData {
 
 class UserList {
   async find(params) {
-    const list = mssqlWrapper.getUserListWhoHasRecommendation(10);
+    const list = mssqlWrapper.getUserListWhoHasRecommendation(100);
 
     return list;
   }

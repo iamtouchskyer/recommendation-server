@@ -199,13 +199,18 @@ async function getUserRecommendationByHid(hid) {
   const queryString2 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${uniqueVideoLists.join(',')})`;
   const fullList = await db.runSqlQuery(queryString2);
 
+  /* FIXME */
+  const FIXMEFullList = _.filter(fullList, (item) => !(item.videotype === 'manga' && item.category.indexOf('亲子') === -1) );
   const listByTimeCategory = await
     Promise.all(_.map(videoListByTimeCategory, async (videoInSpecificTimeCategory) => {
       const videoStr = videoInSpecificTimeCategory.join(',');
       const queryString3 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${videoStr})`;
       const list = await db.runSqlQuery(queryString3);
 
-      return list;
+      /* FIXME */
+      const FIXMEList = _.filter(list, (item) => !(item.videotype === 'manga' && item.category.indexOf('亲子') === -1) );
+
+      return FIXMEList;
     }));
   
   const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), listByTimeCategory);
