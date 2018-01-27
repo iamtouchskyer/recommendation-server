@@ -3,6 +3,15 @@ var moment      = require('moment');
 var _           = require('lodash');
 var cacheMgr    = require('./cache-manager');
 
+_.mixin({
+  countUnique: (arr) => {
+    const a = {};
+    _.each(arr, (element) => { a[element] = a[element] ? a[element] + 1 : 1; });
+
+    return a;
+  },
+});
+
 var db = {
   config: {
     user: 'stcarec',
@@ -118,15 +127,13 @@ async function getDataByDimensionsAndTimeRangeAndCategory(timeRange, dimension, 
     },
 
     'totalWatchedTime' : {
-    //  'appId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_appid]',
-    //  'channelId': '[dbo].[pivot_count_of_watched_flattened_media_provinceid_chnid]',
-      'appId': '[dbo].[pivot_count_of_all_watched_media_provinceid_appid]',
-      'channelId': '[dbo].[pivot_count_of_all_watched_media_provinceid_chnid]',
+      'appId': '[dbo].[pivot_total_watched_time_provinceid_appid]',
+      'channelId': '[dbo].[pivot_total_watched_time_provinceid_chnid]',
     },
 
     'countOfWhatchedMedia' : {
-      'appId': '[dbo].[pivot_count_of_watched_media_provinceid_appid]',
-      'channelId': '[dbo].[pivot_count_of_watched_media_provinceid_chnid]',
+      'appId': '[dbo].[pivot_count_of_all_watched_media_provinceid_appid]',
+      'channelId': '[dbo].[pivot_count_of_all_watched_media_provinceid_chnid]',
     },
   };
 
@@ -182,30 +189,30 @@ async function getUserListWhoHasRecommendation(size) {
 
 async function getUserRecommendationByHid(hid) {
   const hourMapping = {
-    0: 'lateNight',
-    1: 'lateNight',
-    2: 'lateNight',
-    3: 'earlyMorning',
-    4: 'earlyMorning',
-    5: 'earlyMorning',
-    6: 'earlyMorning',
-    7: 'morning',
-    8: 'morning',
-    9: 'morning',
-    10: 'morning',
-    11: 'morning',
-    12: 'noon',
-    13: 'noon',
-    14: 'afternoon',
-    15: 'afternoon',
-    16: 'afternoon',
-    17: 'afternoon',
-    18: 'afternoon',
-    19: 'night',
-    20: 'night',
-    21: 'night',
-    22: 'night',
-    23: 'lateNight',
+    0: '深夜',
+    1: '深夜',
+    2: '深夜',
+    3: '凌晨',
+    4: '凌晨',
+    5: '凌晨',
+    6: '早晨',
+    7: '早晨',
+    8: '早晨',
+    9: '早晨',
+    10: '早晨',
+    11: '早晨',
+    12: '中午',
+    13: '中午',
+    14: '下午',
+    15: '下午',
+    16: '下午',
+    17: '下午',
+    18: '下午',
+    19: '下午',
+    20: '下午',
+    21: '下午',
+    22: '下午',
+    23: '深夜',
   };
 
   const queryString = `select hour, videolist from dbo.PredictForUsers where hid = '${hid}'`;
@@ -250,8 +257,10 @@ async function getUserRecommendationByHid(hid) {
 
       return FIXMEList;
     }));
+
+  const FIXMEListByTimeCategory = _.filter(listByTimeCategory, (arr) => arr.length > 0);
   
-  const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), listByTimeCategory);
+  const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), FIXMEListByTimeCategory);
 
   return {
     fullList: fullList,
@@ -262,139 +271,202 @@ async function getUserRecommendationByHid(hid) {
 async function getUserAggregratedViewHistoryByHid(hid) {
   //const result = await db.doSqlStoreProcedure1('[dbo].[aggregate_user_video_info]', hid);
   let result = await db.runSqlQuery(`select * from [dbo].[aggregate_user_video_info] where hid='${hid}'`);
-  if (result.length > 1) {
-    result = result[1];
-  }
 
-  let description = '用户';
-  const totalWatched = parseInt(result.RecordsInWeekEnd, 10) + parseInt(result.RecordsInWeekDay, 10);
-  
-  if (result.areaTemplate) {
-    description += `来自 ${result.areaname}, `;
-  }
-  if (result.AllDirectors) {
+  const keys = [
+    'RecordsInWeekEnd',
+    'RecordsInWeekDay',
+    'RecordsInDeepNight',
+    'TagInfoWithWenYi',
+    'TagInfoWithJingSong',
+    'TagInfoWithTuiLi',
+    'TagInfoWithXuanYi',
+    'AreaWithJapan',
+    'AreaWithKoera',
+    'AreaWithEngland',
+    'AreaWithAmerica',
+    'TheaterInVideoType',
+    'DhyanaInVideoType',
+    'MovieInVideoType',
+    'TVInVideoType',
+    'ChildrenInVideoType',
+    'ShoppingInVideoType',
+    'AutoInVideoType',
+    'SportInVideoType',
+    'MangaInVideoType',
+    'VarietyInVideoType',
+    'GameInVideoType',
+    'NewsInVideoType',
+  ];
 
-  }
-  if (result.AllActors) {
+  let tmp = result[0];
+  _.each(keys, (key) => {
+    tmp[key] = parseInt(tmp[key]) + (result.length > 1 ? parseInt(result[1][key]) : 0);
+  });
 
-  }
-  if (result.RecordsInWeekEnd || result.RecordsInWeekDay) {
-    if (result.RecordsInWeekEnd > 0.8) {
-      description += '绝大部分观影时间集中在周末, ';
-    } else if (result.RecordsInWeekEnd > 0.6) {
-      description += '大部分观影时间集中在周末, ';
-    } else if (result.RecordsInWeekEnd > 0.4) {
-      description += '观影时间分布比较平均';
-    } else if (result.RecordsInWeekEnd > 0.2) {
-      description += '大部分观影时间集中在平时, ';
-    } else {
-      description += '绝大部分观影时间集中在平时, ';
+  result = tmp;
+
+  console.log(result);
+
+  try {
+
+    let description = '用户';
+    const totalWatched = result.RecordsInWeekEnd + result.RecordsInWeekDay;
+
+    if (result.areaname) {
+      description += `来自 ${result.areaname}, `;
     }
-  }
+    if (result.AllDirectors) {
 
-  if (result.TagInfoWithWenYi || result.TagInfoWithJingSong || result.TagInfoWithTuiLi || result.TagInfoWithXuanYi) {
-    const TagInfoWithWenYi = parseInt(result.TagInfoWithWenYi);
-    const TagInfoWithJingSong = parseInt(result.TagInfoWithJingSong);
-    const TagInfoWithTuiLi = parseInt(result.TagInfoWithTuiLi);
-    const TagInfoWithXuanYi = parseInt(result.TagInfoWithXuanYi);
-    if (TagInfoWithWenYi / totalWatched > 0.4) {
-      description += '小清新文艺范, ';
-    } 
-    if ((TagInfoWithJingSong + TagInfoWithTuiLi + TagInfoWithXuanYi) / totalWatched > 0.4) {
-      description += '喜好烧脑，喜欢悬疑惊悚, ';
     }
-  }
+    if (result.AllActors) {
 
-  if (result.AreaWithJapan || result.AreaWithKoera || result.AreaWithEngland || result.AreaWithAmerica || result.ChildrenInVideoType || result.MangaInVideoType) {
-    const ChildrenInVideoType = parseInt(result.ChildrenInVideoType);
-    const MangaInVideoType = parseInt(result.MangaInVideoType);
-    const AreaWithAmerica = parseInt(result.AreaWithAmerica);
-    const AreaWithEngland = parseInt(result.AreaWithEngland);
-    const AreaWithKoera = parseInt(result.AreaWithKoera);
-    const AreaWithJapan = parseInt(result.AreaWithJapan);
-    
-    const foreignAreaTotal = AreaWithAmerica + AreaWithKoera + AreaWithEngland + AreaWithJapan;
-    const childrenTotal = ChildrenInVideoType + MangaInVideoType;
-
-    if (childrenTotal / totalWatched > 0.1) {
-      description += '家有小宝, ';
-
-      if (childrenTotal / totalWatched > 0.7) {
-        description += '基本拿来为孩子服务, ';
+    }
+    if (result.RecordsInWeekEnd || result.RecordsInWeekDay) {
+      if (result.RecordsInWeekEnd > 0.8) {
+        description += '绝大部分观影时间集中在周末, ';
+      } else if (result.RecordsInWeekEnd > 0.6) {
+        description += '大部分观影时间集中在周末, ';
+      } else if (result.RecordsInWeekEnd > 0.4) {
+        description += '观影时间分布比较平均';
+      } else if (result.RecordsInWeekEnd > 0.2) {
+        description += '大部分观影时间集中在非工作日, ';
+      } else {
+        description += '绝大部分观影时间集中在非工作日, ';
       }
     }
 
-    if (childrenTotal / totalWatched < 0.2) {
-      if ((AreaWithEngland + AreaWithAmerica) / totalWatched > 0.5) {
-        description += '喜欢美剧英剧, ';
+    if (result.RecordsInDeepNight / totalWatched > 0.2) {
+      description += '有深夜观影的习惯, ';
+    }
+
+    if (result.TagInfoWithWenYi || result.TagInfoWithJingSong || result.TagInfoWithTuiLi || result.TagInfoWithXuanYi) {
+      const TagInfoWithWenYi = result.TagInfoWithWenYi;
+      const TagInfoWithJingSong = (result.TagInfoWithJingSong);
+      const TagInfoWithTuiLi = (result.TagInfoWithTuiLi);
+      const TagInfoWithXuanYi = (result.TagInfoWithXuanYi);
+      if (TagInfoWithWenYi / totalWatched > 0.4) {
+        description += '小清新文艺范, ';
       } 
-      if ((AreaWithKoera + AreaWithJapan) / totalWatched > 0.5) {
-        description += '喜欢日剧韩剧, ';
-      } 
+      if ((TagInfoWithJingSong + TagInfoWithTuiLi + TagInfoWithXuanYi) / totalWatched > 1) {
+        description += '喜好烧脑，喜欢悬疑惊悚, ';
+      }
     }
 
-    if (foreignAreaTotal / totalWatched < 0.2) {
-      description += '对国外影片综艺兴趣不大, ';
-    }
-  }
+    if (result.AreaWithJapan || result.AreaWithKoera || result.AreaWithEngland || result.AreaWithAmerica || result.ChildrenInVideoType || result.MangaInVideoType) {
+      const ChildrenInVideoType = (result.ChildrenInVideoType);
+      const MangaInVideoType = (result.MangaInVideoType);
+      const AreaWithAmerica = (result.AreaWithAmerica);
+      const AreaWithEngland = (result.AreaWithEngland);
+      const AreaWithKoera = (result.AreaWithKoera);
+      const AreaWithJapan = (result.AreaWithJapan);
+      
+      const foreignAreaTotal = AreaWithAmerica + AreaWithKoera + AreaWithEngland + AreaWithJapan;
+      const childrenTotal = ChildrenInVideoType + MangaInVideoType;
 
-  if (result.DhyanaInVideoType) {
-    const DhyanaInVideoType = parseInt(DhyanaInVideoType, 10);
-    if (DhyanaInVideoType > 0) {
-      description += '喜爱禅文化, ';
-    }
-  }
+      if (childrenTotal / totalWatched > 0.1) {
+        description += '家有小宝, ';
 
-  if (result.TheaterInVideoType) {
-    const TheaterInVideoType = parseInt(TheaterInVideoType, 10);
-    if (TheaterInVideoType > 0) {
-      description += '喜爱戏剧, ';
+        if (childrenTotal / totalWatched > 0.7) {
+          description += '基本拿来为孩子服务, ';
+        }
+      }
+
+      if (childrenTotal / totalWatched < 0.2) {
+        if ((AreaWithEngland + AreaWithAmerica) / totalWatched > 0.5) {
+          description += '喜欢美剧英剧, ';
+        } 
+        if ((AreaWithKoera + AreaWithJapan) / totalWatched > 0.5) {
+          description += '喜欢日剧韩剧, ';
+        } 
+      }
+
+      if (foreignAreaTotal / totalWatched < 0.2) {
+        description += '对国外影片综艺兴趣不大, ';
+      }
     }
+
+    if (result.DhyanaInVideoType) {
+      const DhyanaInVideoType = result.DhyanaInVideoType;
+      if (DhyanaInVideoType > 0) {
+        description += '喜爱禅文化, ';
+      }
+    }
+
+    if (result.TheaterInVideoType) {
+      const TheaterInVideoType = result.TheaterInVideoType;
+      if (TheaterInVideoType > 0) {
+        description += '喜爱戏剧, ';
+      }
+    }
+    
+    if (result.GameInVideoType) {
+      const GameInVideoType = result.GameInVideoType;
+      if (GameInVideoType / totalWatched > 0.3) {
+        description += '游戏控, ';
+      }
+    }
+
+    if (result.SportInVideoType) {
+      const SportInVideoType = result.SportInVideoType;
+      if (SportInVideoType / totalWatched > 0.3) {
+        description += '喜欢体育运动, ';
+      }
+    }
+
+    if (result.AutoInVideoType) {
+      const AutoInVideoType = result.AutoInVideoType;
+      if (AutoInVideoType / totalWatched > 0.3) {
+        description += '爱车一族, ';
+      }
+    }
+
+    if (result.ShoppingInVideoType) {
+      const ShoppingInVideoType = result.ShoppingInVideoType;
+      if (ShoppingInVideoType / totalWatched > 0.2) {
+        description += '喜欢购物，爱看电视购物栏目, ';
+      }
+    }
+
+    if (result.MovieInVideoType || result.TVInVideoType) {
+      const MovieInVideoType = result.MovieInVideoType;
+      const TVInVideoType = result.TVInVideoType;
+
+      if ((TVInVideoType+MovieInVideoType) / (totalWatched-result.ChildrenInVideoType) > 0.7) {
+
+        const data = await getTagsByHid(hid);
+
+        const tags = _.chain(data)
+          .countUnique()
+          .map((value, key) => { return { name: key, value: value + 20 }; })
+          .filter(value => value.name != 'tv' 
+                        && value.name != 'movie' 
+                        && value.name != 'children'
+                        && value.name != '少儿'
+                        && value.name != '电视剧' 
+                        && value.name != '电影' 
+                        && value.name != '中国大陆')
+          .sortBy(element => -element.value)
+          .value();
+
+        if (MovieInVideoType / (totalWatched-result.ChildrenInVideoType) > 0.6) {
+          description += '电影控, ';
+        }
+
+        if (TVInVideoType / (totalWatched-result.ChildrenInVideoType) > 0.6) {
+          description += '喜欢看连续剧, ';
+        }
+
+        description += `类型集中在 ${tags[0].name}, ${tags[1].name}, ${tags[2].name}, `;
+      }
+    }
+
+    return description;
   }
+  catch (err) {
+    console.log(err);
   
-  if (result.GameInVideoType) {
-    const GameInVideoType = parseInt(result.GameInVideoType, 10);
-    if (GameInVideoType / totalWatched > 0.3) {
-      description += '游戏控';
-    }
+    return '';
   }
-
-  if (result.SportInVideoType) {
-    const SportInVideoType = parseInt(result.SportInVideoType, 10);
-    if (SportInVideoType / totalWatched > 0.3) {
-      description += '喜欢体育运动';
-    }
-  }
-
-  if (result.AutoInVideoType) {
-    const AutoInVideoType = parseInt(result.AutoInVideoType, 10);
-    if (AutoInVideoType / totalWatched > 0.3) {
-      description += '爱车一族';
-    }
-  }
-
-  if (result.ShoppingInVideoType) {
-    const ShoppingInVideoType = parseInt(result.ShoppingInVideoType, 10);
-    if (ShoppingInVideoType / totalWatched > 0.2) {
-      description += '喜欢购物，爱看电视购物栏目';
-    }
-  }
-
-  if (result.MovieInVideoType) {
-    const MovieInVideoType = parseInt(result.MovieInVideoType, 10);
-    if (MovieInVideoType / totalWatched > 0.7) {
-      description += '电影控';
-    }
-  }
-
-  if (result.TVInVideoType) {
-    const TVInVideoType = parseInt(result.TVInVideoType, 10);
-    if (TVInVideoType / totalWatched > 0.7) {
-      description += '综艺控';
-    }
-  }
-
-  return description;
 }
 
 async function getTagsByHid(hid) {
@@ -419,17 +491,16 @@ async function getTagsByHid(hid) {
     .flatten()
     .value();
 
-
   return tags;
 }
 
 async function getViewHistoryByHid(hid) {
-  const queryString = `select distinct vid as dvid from dbo.events where hid='${hid}'`;
+  const queryString = `select vid from dbo.events where hid='${hid}'`;
 
   const vidList = await db.runSqlQuery(queryString);
 
   const uniqueVideoLists = _.chain(vidList)
-    .map(_.property('dvid'))
+    .map(_.property('vid'))
     .filter((vid) => vid != '0')
     .value();
 
