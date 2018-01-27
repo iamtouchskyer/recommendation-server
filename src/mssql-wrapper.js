@@ -305,8 +305,6 @@ async function getUserAggregratedViewHistoryByHid(hid) {
 
   result = tmp;
 
-  console.log(result);
-
   try {
 
     let description = '用户';

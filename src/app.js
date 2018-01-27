@@ -92,11 +92,11 @@ class UserOperationData {
 
         let apps = [];
         for (let ii=0; ii<_.size(key1); ++ii) {
-          apps.push(_.zipObject(['appId', 'total'], [key1[ii], value1[ii]]));
+          apps.push(_.zipObject(['appId', 'total'], [key1[ii], (value1[ii] === null || value1[ii] === undefined) ? 0 : parseInt(value1[ii])]));
         }
         let channels = [];
         for (let ii=0; ii<_.size(key2); ++ii) {
-          channels.push(_.zipObject(['channelId', 'total'], [key2[ii], value2[ii]]));
+          channels.push(_.zipObject(['channelId', 'total'], [key2[ii], (value2[ii] === null || value2[ii] === undefined) ? 0 : parseInt(value2[ii])]));
         }
 
         provincesDataList.push({
