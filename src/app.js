@@ -52,8 +52,9 @@ const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '
 
 class UserOperationData {
   async find(params) {
-    const length = 20;
-    const timeRange = { startDate: (new Date(moment('20171230').calendar())).getTime(), length: length };
+    try {
+    const length = 24;
+    const timeRange = { startDate: (new Date(moment('20171231').calendar())).getTime(), length: length };
 
     const [
       activeClientsByApp, activeClientsByChannel,
@@ -127,6 +128,15 @@ class UserOperationData {
       name: 'operationData',
       data: data,
     };
+
+  } catch (err) {
+
+    console.log(err);
+    return {
+      name: 'operationData',
+      data: {},
+    };
+  }
   }
 
   async get(id, params) { }
@@ -166,6 +176,13 @@ class UserList {
       return {
         name: 'history',
         data: userViewHistory,
+      };
+    } else if (action === 'summary') {
+      const userSummary = await mssqlWrapper.getUserAggregratedViewHistoryByHid(id);
+
+      return {
+        name: 'summary',
+        data: userSummary,
       };
     } else {
       return {};

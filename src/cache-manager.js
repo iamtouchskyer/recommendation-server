@@ -12,6 +12,8 @@ function _path(key) {
 }
 
 function WriteToCache(key, data) {
+  if (data === undefined || data === null) return;
+
   var path = _path(key);
 
   console.log('WriteToCache'.concat(path));

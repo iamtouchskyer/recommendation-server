@@ -24,7 +24,11 @@ var db = {
     }).then(result => {
       const rows = result.recordset;
 
-      cacheMgr.writeToCache(statement, rows);
+      if (rows !== null && rows !== undefined) {
+        cacheMgr.writeToCache(statement, rows);
+      } else {
+        console.log(`Error: statement: ${statement}`);
+      }
 
       //res.setHeader('Access-Control-Allow-Origin', '*')
       //res.status(200).json(rows);
@@ -49,7 +53,40 @@ var db = {
     }).then(result => {
       const rows = result.recordset;
 
-      cacheMgr.writeToCache(cacheKey, rows);
+      if (rows !== null && rows !== undefined) {
+        cacheMgr.writeToCache(cacheKey, rows);
+      } else {
+        console.log(`Error: storeProcedureName: ${storedProcedureName}, date: ${JSON.stringify(inputDate)}`);
+      }
+
+      //res.setHeader('Access-Control-Allow-Origin', '*')
+      //res.status(200).json(rows);
+      mssql.close();
+      return rows;
+    }).catch(err => {
+      //res.status(500).send({ message: "${err}"})
+      console.log(err);
+      mssql.close();
+      return null;
+    });
+  },
+  doSqlStoreProcedure1: async function (storedProcedureName, hid) {
+    const cacheKey = storedProcedureName.concat(JSON.stringify(inputDate));
+    if (cacheMgr.isInCache(cacheKey))
+      return await cacheMgr.readFromCache(cacheKey);
+
+    return await new mssql.ConnectionPool(this.config).connect().then(pool => {
+      return pool.request()
+        .input('hid', mssql.VarChar(33), hid)
+        .execute(storedProcedureName);
+    }).then(result => {
+      const rows = result.recordset;
+
+      if (rows !== null && rows !== undefined) {
+        cacheMgr.writeToCache(cacheKey, rows);
+      } else {
+        console.log(`Error: storeProcedureName: ${storedProcedureName}, date: ${JSON.stringify(inputDate)}`);
+      }
 
       //res.setHeader('Access-Control-Allow-Origin', '*')
       //res.status(200).json(rows);
@@ -63,6 +100,7 @@ var db = {
     });
   },
 };
+
 
 // 距 1970 年 1 月 1 日之间的毫秒数。
 // {startDate: 2017-12-30, length: }
@@ -221,6 +259,144 @@ async function getUserRecommendationByHid(hid) {
   };
 }
 
+async function getUserAggregratedViewHistoryByHid(hid) {
+  //const result = await db.doSqlStoreProcedure1('[dbo].[aggregate_user_video_info]', hid);
+  let result = await db.runSqlQuery(`select * from [dbo].[aggregate_user_video_info] where hid='${hid}'`);
+  if (result.length > 1) {
+    result = result[1];
+  }
+
+  let description = '用户';
+  const totalWatched = parseInt(result.RecordsInWeekEnd, 10) + parseInt(result.RecordsInWeekDay, 10);
+  
+  if (result.areaTemplate) {
+    description += `来自 ${result.areaname}, `;
+  }
+  if (result.AllDirectors) {
+
+  }
+  if (result.AllActors) {
+
+  }
+  if (result.RecordsInWeekEnd || result.RecordsInWeekDay) {
+    if (result.RecordsInWeekEnd > 0.8) {
+      description += '绝大部分观影时间集中在周末, ';
+    } else if (result.RecordsInWeekEnd > 0.6) {
+      description += '大部分观影时间集中在周末, ';
+    } else if (result.RecordsInWeekEnd > 0.4) {
+      description += '观影时间分布比较平均';
+    } else if (result.RecordsInWeekEnd > 0.2) {
+      description += '大部分观影时间集中在平时, ';
+    } else {
+      description += '绝大部分观影时间集中在平时, ';
+    }
+  }
+
+  if (result.TagInfoWithWenYi || result.TagInfoWithJingSong || result.TagInfoWithTuiLi || result.TagInfoWithXuanYi) {
+    const TagInfoWithWenYi = parseInt(result.TagInfoWithWenYi);
+    const TagInfoWithJingSong = parseInt(result.TagInfoWithJingSong);
+    const TagInfoWithTuiLi = parseInt(result.TagInfoWithTuiLi);
+    const TagInfoWithXuanYi = parseInt(result.TagInfoWithXuanYi);
+    if (TagInfoWithWenYi / totalWatched > 0.4) {
+      description += '小清新文艺范, ';
+    } 
+    if ((TagInfoWithJingSong + TagInfoWithTuiLi + TagInfoWithXuanYi) / totalWatched > 0.4) {
+      description += '喜好烧脑，喜欢悬疑惊悚, ';
+    }
+  }
+
+  if (result.AreaWithJapan || result.AreaWithKoera || result.AreaWithEngland || result.AreaWithAmerica || result.ChildrenInVideoType || result.MangaInVideoType) {
+    const ChildrenInVideoType = parseInt(result.ChildrenInVideoType);
+    const MangaInVideoType = parseInt(result.MangaInVideoType);
+    const AreaWithAmerica = parseInt(result.AreaWithAmerica);
+    const AreaWithEngland = parseInt(result.AreaWithEngland);
+    const AreaWithKoera = parseInt(result.AreaWithKoera);
+    const AreaWithJapan = parseInt(result.AreaWithJapan);
+    
+    const foreignAreaTotal = AreaWithAmerica + AreaWithKoera + AreaWithEngland + AreaWithJapan;
+    const childrenTotal = ChildrenInVideoType + MangaInVideoType;
+
+    if (childrenTotal / totalWatched > 0.1) {
+      description += '家有小宝, ';
+
+      if (childrenTotal / totalWatched > 0.7) {
+        description += '基本拿来为孩子服务, ';
+      }
+    }
+
+    if (childrenTotal / totalWatched < 0.2) {
+      if ((AreaWithEngland + AreaWithAmerica) / totalWatched > 0.5) {
+        description += '喜欢美剧英剧, ';
+      } 
+      if ((AreaWithKoera + AreaWithJapan) / totalWatched > 0.5) {
+        description += '喜欢日剧韩剧, ';
+      } 
+    }
+
+    if (foreignAreaTotal / totalWatched < 0.2) {
+      description += '对国外影片综艺兴趣不大, ';
+    }
+  }
+
+  if (result.DhyanaInVideoType) {
+    const DhyanaInVideoType = parseInt(DhyanaInVideoType, 10);
+    if (DhyanaInVideoType > 0) {
+      description += '喜爱禅文化, ';
+    }
+  }
+
+  if (result.TheaterInVideoType) {
+    const TheaterInVideoType = parseInt(TheaterInVideoType, 10);
+    if (TheaterInVideoType > 0) {
+      description += '喜爱戏剧, ';
+    }
+  }
+  
+  if (result.GameInVideoType) {
+    const GameInVideoType = parseInt(result.GameInVideoType, 10);
+    if (GameInVideoType / totalWatched > 0.3) {
+      description += '游戏控';
+    }
+  }
+
+  if (result.SportInVideoType) {
+    const SportInVideoType = parseInt(result.SportInVideoType, 10);
+    if (SportInVideoType / totalWatched > 0.3) {
+      description += '喜欢体育运动';
+    }
+  }
+
+  if (result.AutoInVideoType) {
+    const AutoInVideoType = parseInt(result.AutoInVideoType, 10);
+    if (AutoInVideoType / totalWatched > 0.3) {
+      description += '爱车一族';
+    }
+  }
+
+  if (result.ShoppingInVideoType) {
+    const ShoppingInVideoType = parseInt(result.ShoppingInVideoType, 10);
+    if (ShoppingInVideoType / totalWatched > 0.2) {
+      description += '喜欢购物，爱看电视购物栏目';
+    }
+  }
+
+  if (result.MovieInVideoType) {
+    const MovieInVideoType = parseInt(result.MovieInVideoType, 10);
+    if (MovieInVideoType / totalWatched > 0.7) {
+      description += '电影控';
+    }
+  }
+
+  if (result.TVInVideoType) {
+    const TVInVideoType = parseInt(result.TVInVideoType, 10);
+    if (TVInVideoType / totalWatched > 0.7) {
+      description += '综艺控';
+    }
+  }
+
+  return description;
+}
+
 async function getTagsByHid(hid) {
   const queryString = `select distinct vid as dvid from dbo.events where hid='${hid}'`;
 
@@ -272,6 +448,7 @@ module.exports = {
   getUserRecommendationByHid,
   getViewHistoryByHid,
   getTagsByHid,
+  getUserAggregratedViewHistoryByHid,
   getActiveClientsByChannel,
   getActiveClientsByApp,
   getNewClientsByChannel,
