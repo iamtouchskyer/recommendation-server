@@ -188,6 +188,7 @@ async function getUserListWhoHasRecommendation(size) {
 }
 
 async function getUserRecommendationByHid(hid) {
+  /*
   const hourMapping = {
     0: '深夜',
     1: '深夜',
@@ -195,12 +196,12 @@ async function getUserRecommendationByHid(hid) {
     3: '凌晨',
     4: '凌晨',
     5: '凌晨',
-    6: '早晨',
-    7: '早晨',
-    8: '早晨',
-    9: '早晨',
-    10: '早晨',
-    11: '早晨',
+    6: '上午',
+    7: '上午',
+    8: '上午',
+    9: '上午',
+    10: '上午',
+    11: '上午',
     12: '中午',
     13: '中午',
     14: '下午',
@@ -213,6 +214,34 @@ async function getUserRecommendationByHid(hid) {
     21: '下午',
     22: '下午',
     23: '深夜',
+  };
+  */
+
+  const hourMapping = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+    13: 13,
+    14: 14,
+    15: 15,
+    16: 16,
+    17: 17,
+    18: 18,
+    19: 19,
+    20: 20,
+    21: 21,
+    22: 22,
+    23: 23,
   };
 
   const queryString = `select hour, videolist from dbo.PredictForUsers where hid = '${hid}'`;
