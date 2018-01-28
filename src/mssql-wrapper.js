@@ -259,7 +259,7 @@ async function getUserRecommendationByHid(hid) {
     }));
 
   const FIXMEListByTimeCategory = _.filter(listByTimeCategory, (arr) => arr.length > 0);
-  
+
   const finalListByTimeCategory = _.zipObject(_.keys(videoListByTimeCategory), FIXMEListByTimeCategory);
 
   return {
@@ -297,6 +297,10 @@ async function getUserAggregratedViewHistoryByHid(hid) {
     'GameInVideoType',
     'NewsInVideoType',
   ];
+
+  if (_.isEmpty(result)) {
+    return '';
+  }
 
   let tmp = result[0];
   _.each(keys, (key) => {
@@ -344,7 +348,7 @@ async function getUserAggregratedViewHistoryByHid(hid) {
       const TagInfoWithXuanYi = (result.TagInfoWithXuanYi);
       if (TagInfoWithWenYi / totalWatched > 0.4) {
         description += '小清新文艺范, ';
-      } 
+      }
       if ((TagInfoWithJingSong + TagInfoWithTuiLi + TagInfoWithXuanYi) / totalWatched > 1) {
         description += '喜好烧脑，喜欢悬疑惊悚, ';
       }
@@ -357,7 +361,7 @@ async function getUserAggregratedViewHistoryByHid(hid) {
       const AreaWithEngland = (result.AreaWithEngland);
       const AreaWithKoera = (result.AreaWithKoera);
       const AreaWithJapan = (result.AreaWithJapan);
-      
+
       const foreignAreaTotal = AreaWithAmerica + AreaWithKoera + AreaWithEngland + AreaWithJapan;
       const childrenTotal = ChildrenInVideoType + MangaInVideoType;
 
@@ -372,10 +376,10 @@ async function getUserAggregratedViewHistoryByHid(hid) {
       if (childrenTotal / totalWatched < 0.2) {
         if ((AreaWithEngland + AreaWithAmerica) / totalWatched > 0.5) {
           description += '喜欢美剧英剧, ';
-        } 
+        }
         if ((AreaWithKoera + AreaWithJapan) / totalWatched > 0.5) {
           description += '喜欢日剧韩剧, ';
-        } 
+        }
       }
 
       if (foreignAreaTotal / totalWatched < 0.2) {
@@ -396,7 +400,7 @@ async function getUserAggregratedViewHistoryByHid(hid) {
         description += '喜爱戏剧, ';
       }
     }
-    
+
     if (result.GameInVideoType) {
       const GameInVideoType = result.GameInVideoType;
       if (GameInVideoType / totalWatched > 0.3) {
@@ -436,12 +440,12 @@ async function getUserAggregratedViewHistoryByHid(hid) {
         const tags = _.chain(data)
           .countUnique()
           .map((value, key) => { return { name: key, value: value + 20 }; })
-          .filter(value => value.name != 'tv' 
-                        && value.name != 'movie' 
+          .filter(value => value.name != 'tv'
+                        && value.name != 'movie'
                         && value.name != 'children'
                         && value.name != '少儿'
-                        && value.name != '电视剧' 
-                        && value.name != '电影' 
+                        && value.name != '电视剧'
+                        && value.name != '电影'
                         && value.name != '中国大陆')
           .sortBy(element => -element.value)
           .value();
@@ -462,7 +466,7 @@ async function getUserAggregratedViewHistoryByHid(hid) {
   }
   catch (err) {
     console.log(err);
-  
+
     return '';
   }
 }
