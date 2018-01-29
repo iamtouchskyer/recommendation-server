@@ -48,7 +48,7 @@ app.configure(express.rest());
 // Configure Socket.io real-time APIs
 app.configure(socketio());
 
-const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '广东', '广西', '贵州', '海南', '河北', '黑龙江', '河南', '湖北', '湖南', '江苏', '江西', '吉林', '辽宁省', '内蒙古', '宁夏', '青海', '山东', '上海', '陕西', '山西', '四川', '台湾', '天津', '香港', '新疆', '西藏', '云南', '浙江'];
+const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '广东', '广西', '贵州', '海南', '河北', '黑龙江', '河南', '湖北', '湖南', '江苏', '江西', '吉林', '辽宁', '内蒙古', '宁夏', '青海', '山东', '上海', '陕西', '山西', '四川', '台湾', '天津', '香港', '新疆', '西藏', '云南', '浙江'];
 
 class UserOperationData {
   async find(params) {
@@ -152,27 +152,27 @@ class UserList {
     return list;
   }
 
-  async get(id, params) { 
+  async get(id, params) {
     const hid = id;
     const action = params.query.action;
 
     if (action === 'recommendation') {
       const userRecommendation = await mssqlWrapper.getUserRecommendationByHid(hid);
-  
+
       return {
         name: 'recommendation',
         data: userRecommendation,
       };
     } else if (action === 'tag') {
       const userTags = await mssqlWrapper.getTagsByHid(id);
-    
+
       return {
         name: 'tags',
         data: userTags,
       };
     } else if (action === 'history') {
       const userViewHistory = await mssqlWrapper.getViewHistoryByHid(id);
-    
+
       return {
         name: 'history',
         data: userViewHistory,
