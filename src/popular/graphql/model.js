@@ -15,13 +15,13 @@ class PlayCount {
     this.videotype = videotype;
     this.language = language;
     this.category = category;
-    this.provinceID = provinceID || 0;
+    this.provinceID = provinceID || -1;
     this.area = area;
     this.hourOfDay = hourOfDay || 25;
     this.startDate = startDate;
 
     const currentDate = new Date(Date.now());
-    this.endDate = endDate || currentDate.getFullYear() + '-' + (1 + currentDate.getMonth()) + '-' + currentDate.getDate();
+    this.endDate = endDate || currentDate.getFullYear() + '-' + (1 + currentDate.getMonth()) + '-' + (1 + currentDate.getDate());
   }
 
   count({ top }) {
@@ -33,8 +33,8 @@ class PlayCount {
       'area': _.isUndefined(this.area) ? 'NULL' : 'N\'' + this.area + '\'',
       'hourOfDay': this.hourOfDay,
       'provinceID': this.provinceID,
-      'startDate': '\'' + this.startDate + ' 00:00:00\'',
-      'endDate': '\'' + this.endDate + ' 00:00:00\'',
+      'startDate': '\'' + this.startDate + '\'',
+      'endDate': '\'' + this.endDate + '\'',
       'top': top,
     };
 
