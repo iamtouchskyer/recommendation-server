@@ -24,7 +24,7 @@ var db = {
       encrypt: true // Use this if you're on Windows Azure
     },
   },
-  runSqlQuery: async function (statement) {
+  runSqlQuery: async function (statement, cacheable=true) {
     if (cacheMgr.isInCache(statement))
       return await cacheMgr.readFromCache(statement);
 
@@ -33,10 +33,12 @@ var db = {
     }).then(result => {
       const rows = result.recordset;
 
-      if (rows !== null && rows !== undefined) {
-        cacheMgr.writeToCache(statement, rows);
-      } else {
-        console.log(`Error: statement: ${statement}`);
+      if (cacheable) {
+        if (rows !== null && rows !== undefined) {
+          cacheMgr.writeToCache(statement, rows);
+        } else {
+          console.log(`Error: statement: ${statement}`);
+        }
       }
 
       //res.setHeader('Access-Control-Allow-Origin', '*')
@@ -182,7 +184,7 @@ async function getCountOfWatchedMediaByApp(timeRange) {
 
 async function getUserListWhoHasRecommendation(size) {
   const queryString = `select distinct top (${size}) hid from dbo.PredictForUsers`;
-  const result = await db.runSqlQuery(queryString);
+  const result = await db.runSqlQuery(queryString, false);
 
   return (_.map(result, _.property('hid')));
 }
@@ -245,7 +247,7 @@ async function getUserRecommendationByHid(hid) {
   };
 
   const queryString = `select hour, videolist from dbo.PredictForUsers where hid = '${hid}'`;
-  const result = await db.runSqlQuery(queryString);
+  const result = await db.runSqlQuery(queryString, false);
 
   const videoListByTimeCategory = _.reduce(result, (memo, res) => {
     const key = hourMapping[res.hour];
@@ -273,18 +275,13 @@ async function getUserRecommendationByHid(hid) {
   const queryString2 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${uniqueVideoLists.join(',')})`;
   const fullList = await db.runSqlQuery(queryString2);
 
-  /* FIXME */
-  const FIXMEFullList = _.filter(fullList, (item) => !(item.videotype === 'manga' && item.category.indexOf('亲子') === -1) );
   const listByTimeCategory = await
     Promise.all(_.map(videoListByTimeCategory, async (videoInSpecificTimeCategory) => {
       const videoStr = videoInSpecificTimeCategory.join(',');
       const queryString3 = `select vid, vname, videotype, taginfo, category, area, director, actor, issueyear from dbo.videoInfo where vid IN (${videoStr})`;
       const list = await db.runSqlQuery(queryString3);
 
-      /* FIXME */
-      const FIXMEList = _.filter(list, (item) => !(item.videotype === 'manga' && item.category.indexOf('亲子') === -1) );
-
-      return FIXMEList;
+      return list;
     }));
 
   const FIXMEListByTimeCategory = _.filter(listByTimeCategory, (arr) => arr.length > 0);
@@ -461,6 +458,7 @@ async function getUserAggregratedViewHistoryByHid(hid) {
     if (result.MovieInVideoType || result.TVInVideoType) {
       const MovieInVideoType = result.MovieInVideoType;
       const TVInVideoType = result.TVInVideoType;
+      const VarietyInVideoType = result.VarietyInVideoType;
 
       if ((TVInVideoType+MovieInVideoType) / (totalWatched-result.ChildrenInVideoType) > 0.7) {
 
@@ -472,6 +470,8 @@ async function getUserAggregratedViewHistoryByHid(hid) {
           .filter(value => value.name != 'tv'
                         && value.name != 'movie'
                         && value.name != 'children'
+                        && value.name != 'variety'
+                        && value.name != '综艺'
                         && value.name != '少儿'
                         && value.name != '电视剧'
                         && value.name != '电影'
@@ -485,6 +485,10 @@ async function getUserAggregratedViewHistoryByHid(hid) {
 
         if (TVInVideoType / (totalWatched-result.ChildrenInVideoType) > 0.6) {
           description += '喜欢看连续剧, ';
+        }
+
+        if (VarietyInVideoType / (totalWatched-result.ChildrenInVideoType) > 0.6) {
+          description += '综艺控, ';
         }
 
         description += `类型集中在 ${tags[0].name}, ${tags[1].name}, ${tags[2].name}, `;
