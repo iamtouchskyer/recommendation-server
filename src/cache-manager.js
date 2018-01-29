@@ -18,7 +18,7 @@ function WriteToCache(key, data) {
 
   console.log('WriteToCache'.concat(path));
 
-  fs.writeFile(path, JSON.stringify(data), function (error) {
+  return fs.writeFileSync(path, JSON.stringify(data), function (error) {
     if (error) {
       console.error('write error:  ' + error.message);
     } else {
