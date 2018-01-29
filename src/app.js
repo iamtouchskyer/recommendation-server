@@ -48,7 +48,42 @@ app.configure(express.rest());
 // Configure Socket.io real-time APIs
 app.configure(socketio());
 
-const provinces = ['安徽', '澳门', '北京', '重庆', '福建', '甘肃', '广东', '广西', '贵州', '海南', '河北', '黑龙江', '河南', '湖北', '湖南', '江苏', '江西', '吉林', '辽宁', '内蒙古', '宁夏', '青海', '山东', '上海', '陕西', '山西', '四川', '台湾', '天津', '香港', '新疆', '西藏', '云南', '浙江'];
+const provinces = {
+  200: '安徽',
+  201: '澳门',
+  202: '北京',
+  203: '重庆',
+  204: '福建',
+  205: '甘肃',
+  206: '广东',
+  207: '广西',
+  208: '贵州',
+  209: '海南',
+  210: '河北',
+  211: '河南',
+  212: '黑龙江',
+  213: '湖北',
+  214: '湖南',
+  215: '吉林',
+  216: '江苏',
+  217: '江西',
+  218: '辽宁',
+  219: '内蒙古',
+  220: '宁夏',
+  221: '青海',
+  222: '山东',
+  223: '山西',
+  224: '陕西',
+  225: '上海',
+  226: '四川',
+  227: '台湾',
+  228: '天津',
+  229: '西藏',
+  230: '香港',
+  231: '新疆',
+  232: '云南',
+  233: '浙江'
+};
 
 class UserOperationData {
   async find(params) {
@@ -101,7 +136,7 @@ class UserOperationData {
 
         provincesDataList.push({
           provinceId: clientsByApp[j].provinceid,
-          provinceName: clientsByApp[j].provinceid === 0 ? '全国' : provinces[clientsByApp[j].provinceid-200],
+          provinceName: clientsByApp[j].provinceid === 0 ? '全国' : provinces[clientsByApp[j].provinceid],
           dimensions: {
             application: apps,
             channel: channels,
