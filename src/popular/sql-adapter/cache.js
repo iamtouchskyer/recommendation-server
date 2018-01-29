@@ -10,6 +10,6 @@ var cacherObj = cacher(sequelize, rc);
 
 module.exports = {
   cacherObj,
-  DEFAULT_TTL: 60 * 60 * 24
+  DEFAULT_TTL: 60 * 60 * 24 * 2,
 };
 
