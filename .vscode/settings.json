@@ -1,0 +1,11 @@
+{
+  "python.unitTest.unittestArgs": [
+    "-v",
+    "-s",
+    "./uploader/tests",
+    "-p",
+    "*_test.py"
+  ],
+  "python.unitTest.unittestEnabled": true,
+  "python.pythonPath": "/usr/local/bin/python2.7"
+}

@@ -1,5 +1,8 @@
 const DataLoader = require('dataloader');
-const { extractUniqueValues, runSproc } = require('../sql-adapter/index');
+const {
+  extractUniqueValuesInVideoType,
+  runSproc
+} = require('../../sql-adapter/index');
 
 // loads video info. keys are [(videotype, column)]
 const videoInfoLoader = new DataLoader(typeCols => {
@@ -11,7 +14,7 @@ const videoInfoLoader = new DataLoader(typeCols => {
     const { videotype, column } = typeCol;
 
     // somehow caching for this doesn't work.
-    var p = extractUniqueValues(videotype, column, true);
+    var p = extractUniqueValuesInVideoType(videotype, column, true);
 
     promises.push(p);
   });

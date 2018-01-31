@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { extractUniqueValues, runSproc } = require('../sql-adapter/index');
+const { extractUniqueValues, runSproc } = require('../../sql-adapter/index');
 const { videoInfoLoader } = require('./cache');
 
 class VideoCountEntity {

@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const sequelize = require('./raw');
+const sequelize = require('../raw');
 
 const VideoInfo = sequelize.define('videoinfo', {
   vid: { type: Sequelize.BIGINT, allowNull: false },
