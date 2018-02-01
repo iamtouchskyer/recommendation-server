@@ -186,7 +186,7 @@ async function getUserListWhoHasRecommendation(size) {
   const queryString = `select distinct top (${size}) hid from dbo.PredictForUsers`;
   const result = await db.runSqlQuery(queryString);
 
-  return (
+  let resArr = 
     _.shuffle(
       _.map(result, _.property('hid'))
         .concat([
@@ -232,8 +232,11 @@ async function getUserListWhoHasRecommendation(size) {
           '09B8DD780F627EC10ABE5634C7D2959D',
           '0F0D7F68EAB897D86380A7BAA894583F',
       ])
-    )
-  );
+    );
+
+  resArr = _.remove(resArr, ((element) => element !== '004BA776F16D9C98AB22D1D9394AE9E2'));
+
+  return resArr;
 }
 
 async function getUserRecommendationByHid(hid) {
@@ -543,7 +546,10 @@ async function getUserAggregratedViewHistoryByHid(hid) {
           description += '综艺控, ';
         }
 
-        description += `类型集中在 ${tags[0].name}, ${tags[1].name}, ${tags[2].name}, `;
+        if (_.size(tags) > 0) {
+          description += '类型集中在 ';
+          _.each(tags, (tag) => description += `${tag.name}`);
+        }
       }
     }
 
