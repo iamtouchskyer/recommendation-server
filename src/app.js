@@ -248,9 +248,17 @@ app.use('/api/cibn/image', (req, res) => {
   let vid = req.query.vid;
 
   if (vid) {
-    getImageForVideo(vid).then((result) => {
-      res.redirect(result);
-    });
+    getImageForVideo(vid)
+      .then((result) => {
+        if (result) {
+          res.redirect(result);
+        } else {
+          res.sendStatus(404);
+        }  
+      })
+      .catch((err) => {
+        res.sendStatus(500);
+      });
   } else {
     res.sendStatus(404);
   }  
