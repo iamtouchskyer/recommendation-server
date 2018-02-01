@@ -27,6 +27,8 @@ const graphqlHTTP = require('express-graphql');
 const root = require('./graphql/root');
 const schema = require('./graphql/schema');
 
+const getImageForVideo = require('./services/image');
+
 // This enables CORS
 app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -241,6 +243,18 @@ app.use('/api/graphql', graphqlHTTP({
   rootValue: root,
   graphiql: true
 }));
+
+app.use('/api/cibn/image', (req, res) => {
+  let vid = req.query.vid;
+
+  if (vid) {
+    getImageForVideo(vid).then((result) => {
+      res.redirect(result);
+    });
+  } else {
+    res.sendStatus(404);
+  }  
+});
 
 app.set('host', 'localhost');
 app.set('port', 3030);
