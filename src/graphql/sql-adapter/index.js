@@ -1,5 +1,5 @@
 const sequelize = require('./raw');
-const VideoInfo = require('./videoinfo');
+const VideoInfo = require('./models/videoinfo');
 
 const { cacherObj, DEFAULT_TTL } = require('./cache');
 
@@ -25,7 +25,7 @@ const splitValues = (column, values, splitter) => {
 }
 
 // Get all filters for certain videoType
-const extractUniqueValues = (videoType, column, useCache = false) => {
+const extractUniqueValuesInVideoType = (videoType, column, useCache = false) => {
   let params = {
     attributes:
       [column],
@@ -36,16 +36,15 @@ const extractUniqueValues = (videoType, column, useCache = false) => {
     order: [[sequelize.fn('COUNT', sequelize.col(column)), 'DESC']]
   };
 
+  let model = VideoInfo.findAll(params);
+
   if (useCache === true) {
-    return cacherObj
-      .model('videoinfo').ttl(DEFAULT_TTL)
-      .findAll(params)
-      .then(values => splitValues(column, values, /[\s|]/g));
-  } else {
-    return VideoInfo
-      .findAll(params)
-      .then(values => splitValues(column, values, /[\s|]/g));
+    mode = cacherObj
+      .model('videoinfo').ttl(DEFAULT_TTL);
   }
+
+  return model
+    .then(values => splitValues(column, values, /[\s|]/g));
 }
 
 // Call a stored procedure on server, with procParams
@@ -69,6 +68,6 @@ const runSproc = (procName, procParams, useCache = false) => {
 }
 
 module.exports = {
-  extractUniqueValues,
+  extractUniqueValuesInVideoType,
   runSproc
 };
