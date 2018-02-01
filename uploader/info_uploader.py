@@ -8,7 +8,7 @@ import uploader
 
 class InfoUploader(uploader.BulkUploader):
     def __init__(self):
-        uploader.BulkUploader.__init__(self, queue_size=10)
+        uploader.BulkUploader.__init__(self, queue_size=1000)
         self._info_coll = self.get_mongo_collection('videoimage')
         self._counter = 0
 
