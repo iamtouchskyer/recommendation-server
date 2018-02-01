@@ -184,7 +184,7 @@ async function getCountOfWatchedMediaByApp(timeRange) {
 
 async function getUserListWhoHasRecommendation(size) {
   const queryString = `select distinct top (${size}) hid from dbo.PredictForUsers`;
-  const result = await db.runSqlQuery(queryString, false);
+  const result = await db.runSqlQuery(queryString);
 
   return (
     _.shuffle(
@@ -294,10 +294,10 @@ async function getUserRecommendationByHid(hid) {
   };
 
   const queryString = `select hour, videolist from dbo.PredictForUsers where hid = '${hid}'`;
-  const result = await db.runSqlQuery(queryString, false);
+  const result = await db.runSqlQuery(queryString);
 
   const videoListByTimeCategory = _.reduce(result, (memo, res) => {
-    if (res.hour >= 1 && res.hour < 6) return memo; // FIXME!
+    res.hour = (res.hour + 8) % 24; // FIXME
 
     const key = hourMapping[res.hour];
 
@@ -412,9 +412,12 @@ async function getUserAggregratedViewHistoryByHid(hid) {
       }
     }
 
+    /*
+      FIXME
     if (result.RecordsInDeepNight / totalWatched > 0.2) {
       description += '有深夜观影的习惯, ';
     }
+    */
 
     if (result.TagInfoWithWenYi || result.TagInfoWithJingSong || result.TagInfoWithTuiLi || result.TagInfoWithXuanYi) {
       const TagInfoWithWenYi = result.TagInfoWithWenYi;
