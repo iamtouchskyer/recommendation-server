@@ -5,7 +5,7 @@ const encodedToken = encodeURIComponent('xAQCuSzu4jezWd5zSOSmcBlMfX3hbAuxoFu1yeJ
 const url = 'mongodb://stcarecdb:' + encodedToken + '@stcarecdb.documents.azure.com:10255/?ssl=true&ssl_cert_reqs=CERT_NONE'
 
 const generateImageUrl = (info) => {
-  if (info.fid && info.height && info.width) {
+  if (info && info.fid && info.height && info.width) {
     return 'http://cdn.cibn.cc/view/' + info.fid + '-' + info.width + '-' + info.width;
   }
 
