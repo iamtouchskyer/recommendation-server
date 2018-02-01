@@ -1,8 +1,8 @@
 const _ = require('lodash');
-const { extractUniqueValues, runSproc } = require('../../sql-adapter/index');
+const { extractUniqueValues, runSproc } = require('./sql-adapter/index');
 const { videoInfoLoader } = require('./cache');
 
-class VideoCountEntity {
+class RankResult {
   constructor(vid, videoname, play_count) {
     this.vid = vid;
     this.videoname = videoname;
@@ -10,7 +10,15 @@ class VideoCountEntity {
   }
 }
 
-class PlayCount {
+class CountResult {
+  constructor(playHour, playCount) {
+    const hourObj = new Date(playHour);
+    this.playHour = hourObj.getFullYear() + '-' + (1 + hourObj.getMonth()) + '-' + hourObj.getDate() + ' ' + hourObj.getUTCHours() + ':00:00';
+    this.playCount = playCount;
+  }
+}
+
+class PlayEvents {
   constructor(videotype, language, category, provinceID, startDate, endDate, area, hourOfDay) {
     this.videotype = videotype;
     this.language = language;
@@ -21,10 +29,10 @@ class PlayCount {
     this.startDate = startDate;
 
     const currentDate = new Date(Date.now());
-    this.endDate = endDate || currentDate.getFullYear() + '-' + (1 + currentDate.getMonth()) + '-' + (1 + currentDate.getDate());
+    this.endDate = endDate || currentDate.getFullYear() + '-' + (1 + currentDate.getMonth()) + '-' + currentDate.getDate();
   }
 
-  count({ top }) {
+  rank({ top }) {
     top = top || 10;
     let params = {
       'videoType': '\'' + this.videotype + '\'',
@@ -43,9 +51,29 @@ class PlayCount {
     return rank.then(response => {
       let ret = [];
       response.forEach(element => {
-        let r = new VideoCountEntity(element.vid, element.videoname, element.play_count);
+        let r = new RankResult(element.vid, element.videoname, element.play_count);
 
         ret.push(r);
+      });
+
+      return ret;
+    });
+  }
+
+  count() {
+    let params = {
+      'videoType': _.isUndefined(this.videotype) ? 'NULL' : '\'' + this.videotype + '\'',
+      'provinceID': this.provinceID,
+      'startDate': '\'' + this.startDate + '\'',
+      'endDate': '\'' + this.endDate + '\'',
+    };
+
+    let count = runSproc('prc_playCountByHour', params, true);
+
+    return count.then(response => {
+      let ret = [];
+      response.forEach(element => {
+        ret.push(new CountResult(element.PlayHour, element.PlayCount));
       });
 
       return ret;
@@ -82,5 +110,5 @@ class Filters {
 
 module.exports = {
   Filters,
-  PlayCount
+  PlayEvents
 };

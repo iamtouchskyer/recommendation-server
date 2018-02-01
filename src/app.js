@@ -24,8 +24,8 @@ const moment = require('moment');
 const app = express(feathers());
 
 const graphqlHTTP = require('express-graphql');
-const root = require('./popular/graphql/root');
-const schema = require('./popular/graphql/schema');
+const root = require('./graphql/root');
+const schema = require('./graphql/schema');
 
 // This enables CORS
 app.use(function(req, res, next) {
@@ -198,6 +198,15 @@ class UserList {
 app.use('/api/cibn/operationdata', new UserOperationData());
 app.use('/api/cibn/users', new UserList());
 
+/*
+  Graph QL
+*/
+app.use('/api/graphql', graphqlHTTP({
+  schema: schema,
+  rootValue: root,
+  graphiql: true
+}));
+
 app.set('host', 'localhost');
 app.set('port', 3030);
 
@@ -214,16 +223,6 @@ app.publish(data => app.channel('everybody'));
 app.listen(app.port).on('listening', () =>
   console.log('Feathers server listening on http://%s:%d', app.get('host'), app.get('port'))
 );
-
-/*
-  Graph QL
-*/
-app.use('/popular', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true
-}));
-
 
 module.exports = app;
 

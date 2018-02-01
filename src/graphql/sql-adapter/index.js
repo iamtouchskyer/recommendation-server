@@ -68,6 +68,6 @@ const runSproc = (procName, procParams, useCache = false) => {
 }
 
 module.exports = {
-  extractUniqueValues,
+  extractUniqueValuesInVideoType,
   runSproc
 };

@@ -2,7 +2,7 @@ const DataLoader = require('dataloader');
 const {
   extractUniqueValuesInVideoType,
   runSproc
-} = require('../../sql-adapter/index');
+} = require('./sql-adapter/index');
 
 // loads video info. keys are [(videotype, column)]
 const videoInfoLoader = new DataLoader(typeCols => {

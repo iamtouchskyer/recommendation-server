@@ -8,29 +8,35 @@ const schema = buildSchema(`
     categories: [String]
   }
 
-  type VideoCountEntity {
+  type RankResult {
     vid: Int!,
     videoname: String!,
     play_count: Int!
   }
 
-  type PlayCount {
-    count(top: Int): [VideoCountEntity]!
+  type PlayEvents {
+    rank(top: Int): [RankResult]!,
+    count: [CountResult]!
+  }
+
+  type CountResult {
+    playHour: String!,
+    playCount: Int!
   }
 
   type Query {
     filters(videotype: String): Filters,
 
-    playCount(
-      videotype: String!, 
+    playEvents (
+      videotype: String, 
       language: String,
       category: String,
       provinceID: Int,
-      startDate: String!,
+      startDate: String,
       endDate: String,
       area: String,
       hourOfDay: Int,
-    ): PlayCount
+    ): PlayEvents
   }
 `)
 
