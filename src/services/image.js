@@ -25,7 +25,7 @@ const getImageForVideo = (vid) => {
       const video_collection = db.collection('videoimage');
   
       video_collection.findOne(
-        { refvideo: { $regex: '' + vid + '(.*)' } },
+        { refvideo: vid + '_0' },
         (err, result) => {
           console.log(err, result);
           if (err) {
